@@ -8,11 +8,12 @@ export default function Auth() {
   const { t } = useTranslation();
   const { signIn, signUp, signInAsGuest } = useAuth();
 
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail]       = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError]       = useState(null);
-  const [loading, setLoading]   = useState(false);
+  const [isSignUp, setIsSignUp]       = useState(false);
+  const [email, setEmail]             = useState("");
+  const [password, setPassword]       = useState("");
+  const [error, setError]             = useState(null);
+  const [loading, setLoading]         = useState(false);
+  const [checkEmail, setCheckEmail]   = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,6 +24,7 @@ export default function Auth() {
         ? await signUp(email, password)
         : await signIn(email, password);
       if (error) throw error;
+      if (isSignUp) setCheckEmail(true);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -36,6 +38,13 @@ export default function Auth() {
       <div className="text-center mb-10">
         <h1 className="text-4xl font-bold text-green-600">VeetuLedger</h1>
       </div>
+
+      {checkEmail && (
+        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-center mb-4">
+          <p className="text-green-800 font-medium">Check your email</p>
+          <p className="text-green-600 text-sm mt-1">We sent a confirmation link to <strong>{email}</strong></p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Input

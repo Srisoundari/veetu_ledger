@@ -36,7 +36,12 @@ export function useProjects() {
     );
   };
 
-  return { projects, loading, error, create, complete, refresh: load };
+  const remove = async (id) => {
+    if (!isGuest) await projectsApi.delete(id);
+    setProjects((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  return { projects, loading, error, create, complete, remove, refresh: load };
 }
 
 export function useProjectEntries(projectId) {

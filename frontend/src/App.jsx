@@ -7,7 +7,9 @@ import HouseholdSetup from "./screens/HouseholdSetup/HouseholdSetup";
 import Expenses from "./screens/Expenses/Expenses";
 import Projects from "./screens/Projects/Projects";
 import SharedList from "./screens/SharedList/SharedList";
+import Profile from "./screens/Profile/Profile";
 import BottomNav from "./components/BottomNav";
+import TopBar from "./components/TopBar";
 import GuestBanner from "./components/GuestBanner";
 import Spinner from "./components/Spinner";
 
@@ -31,15 +33,29 @@ function MainApp({ user }) {
     );
   }
 
+  const mainTabs = ["expenses", "projects", "list"];
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
+      <TopBar
+        onHome={() => setTab("expenses")}
+        onProfile={() => setTab("profile")}
+      />
       <GuestBanner />
       <div className="flex-1 overflow-hidden flex flex-col">
         {tab === "expenses" && <Expenses />}
         {tab === "projects" && <Projects />}
         {tab === "list"     && <SharedList />}
+        {tab === "profile"  && (
+          <Profile
+            household={household}
+            onBack={() => setTab("expenses")}
+          />
+        )}
       </div>
-      <BottomNav active={tab} onChange={setTab} />
+      {mainTabs.includes(tab) && (
+        <BottomNav active={tab} onChange={setTab} />
+      )}
     </div>
   );
 }

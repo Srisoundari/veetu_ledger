@@ -1,45 +1,53 @@
+import { supabase } from "../lib/supabase";
+
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-// Read token synchronously from localStorage — no network call
 function getToken() {
-  // Try our manually stored key first (set by AuthContext on sign in)
-  const manual = localStorage.getItem("access_token");
-  if (manual) return manual;
-
-  // Fall back to Supabase's own session key
-  const url = import.meta.env.VITE_SUPABASE_URL || "";
-  const ref = url.split("//")[1]?.split(".")[0];
-  if (ref) {
-    try {
-      const raw = localStorage.getItem(`sb-${ref}-auth-token`);
-      if (raw) return JSON.parse(raw).access_token;
-    } catch {}
-  }
-  return null;
+  return localStorage.getItem("access_token") || null;
 }
 
-async function request(method, path, body = null) {
+async function request(method, path, body = null, _retry = true) {
   const token = getToken();
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: body ? JSON.stringify(body) : null,
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(
+    () => controller.abort(new DOMException("Request timed out", "TimeoutError")),
+    10_000
+  );
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(err.detail || "Request failed");
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method,
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: body ? JSON.stringify(body) : null,
+    });
+
+    // Token expired — refresh once and retry
+    if (res.status === 401 && _retry) {
+      const { data } = await supabase.auth.refreshSession();
+      if (data.session?.access_token) {
+        localStorage.setItem("access_token", data.session.access_token);
+        return request(method, path, body, false);
+      }
+    }
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(err.detail || "Request failed");
+    }
+
+    return res.json();
+  } finally {
+    clearTimeout(timer);
   }
-
-  return res.json();
 }
 
 export const http = {
-  get:    (path)        => request("GET",    path),
-  post:   (path, body)  => request("POST",   path, body),
-  patch:  (path, body)  => request("PATCH",  path, body),
-  delete: (path)        => request("DELETE", path),
+  get:    (path)       => request("GET",    path),
+  post:   (path, body) => request("POST",   path, body),
+  patch:  (path, body) => request("PATCH",  path, body),
+  delete: (path)       => request("DELETE", path),
 };

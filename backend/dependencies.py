@@ -1,9 +1,12 @@
 import time
+import json
+import base64
 import logging
-import jwt
-from fastapi import Header, HTTPException
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 logger = logging.getLogger(__name__)
+_bearer = HTTPBearer()
 
 
 class User:
@@ -12,19 +15,30 @@ class User:
         self.email = email
 
 
-async def get_current_user(authorization: str = Header(...)):
+def _decode_jwt_payload(token: str) -> dict:
+    parts = token.split(".")
+    if len(parts) != 3:
+        raise ValueError(f"Malformed JWT: expected 3 parts, got {len(parts)}")
+    padded = parts[1] + "=" * (4 - len(parts[1]) % 4)
+    return json.loads(base64.urlsafe_b64decode(padded))
+
+
+async def get_current_user(creds: HTTPAuthorizationCredentials = Depends(_bearer)):
     try:
-        token = authorization.removeprefix("Bearer ").strip()
-        # Supabase newer projects use ES256 (asymmetric) — decode without
-        # signature verification but still validate expiry.
-        payload = jwt.decode(
-            token,
-            options={"verify_signature": False},
-            algorithms=["ES256", "HS256"],
-        )
-        if payload.get("exp", 0) < time.time():
-            raise ValueError("Token expired")
-        return User(id=payload["sub"], email=payload.get("email", ""))
+        payload = _decode_jwt_payload(creds.credentials)
+
+        exp = payload.get("exp", 0)
+        if exp < time.time():
+            raise ValueError(f"Token expired at {exp}, now={int(time.time())}")
+
+        user_id = payload.get("sub")
+        if not user_id:
+            raise ValueError("Token missing 'sub' claim")
+
+        return User(id=user_id, email=payload.get("email", ""))
+
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Auth failed: {e}")
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
+        logger.error(f"Auth failed: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=401, detail=str(e))

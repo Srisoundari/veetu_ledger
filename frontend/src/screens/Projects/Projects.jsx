@@ -15,7 +15,7 @@ export default function Projects() {
   const [name, setName]           = useState("");
   const [desc, setDesc]           = useState("");
   const [loading, setLoading]     = useState(false);
-  const { projects, loading: listLoading, error, create } = useProjects();
+  const { projects, loading: listLoading, error, create, complete, remove } = useProjects();
 
   if (selected) {
     return <ProjectDetail project={selected} onBack={() => setSelected(null)} />;
@@ -66,21 +66,43 @@ export default function Projects() {
         )}
 
         {projects.map((p) => (
-          <Card key={p.id} onClick={() => setSelected(p)}>
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="font-semibold text-gray-800">{p.name}</p>
+          <Card key={p.id}>
+            {/* Tap row opens detail */}
+            <div
+              className="flex justify-between items-center cursor-pointer"
+              onClick={() => setSelected(p)}
+            >
+              <div className="flex-1 min-w-0 pr-2">
+                <p className="font-semibold text-gray-800 truncate">{p.name}</p>
                 {p.description && (
-                  <p className="text-sm text-gray-400 mt-0.5">{p.description}</p>
+                  <p className="text-sm text-gray-400 mt-0.5 truncate">{p.description}</p>
                 )}
               </div>
-              <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+              <span className={`text-xs px-2 py-1 rounded-full font-medium shrink-0 ${
                 p.status === "completed"
                   ? "bg-gray-100 text-gray-400"
                   : "bg-green-100 text-green-700"
               }`}>
                 {p.status}
               </span>
+            </div>
+
+            {/* Action row */}
+            <div className="flex gap-3 mt-3 pt-2.5 border-t border-gray-50">
+              {p.status !== "completed" && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); complete(p.id); }}
+                  className="text-xs text-green-600 font-medium hover:text-green-700"
+                >
+                  ✓ Mark complete
+                </button>
+              )}
+              <button
+                onClick={(e) => { e.stopPropagation(); remove(p.id); }}
+                className="text-xs text-red-400 font-medium hover:text-red-500 ml-auto"
+              >
+                Delete
+              </button>
             </div>
           </Card>
         ))}
