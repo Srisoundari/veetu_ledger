@@ -52,8 +52,8 @@ export function AuthProvider({ children }) {
     setUser(guest);
   };
 
-  const sendOtp   = (phone)        => supabase.auth.signInWithOtp({ phone });
-  const verifyOtp = (phone, token) => supabase.auth.verifyOtp({ phone, token, type: "sms" });
+  const signIn = (email, password) => supabase.auth.signInWithPassword({ email, password });
+  const signUp = (email, password) => supabase.auth.signUp({ email, password });
 
   const logout = async () => {
     clearGuestData();
@@ -66,7 +66,7 @@ export function AuthProvider({ children }) {
   const isGuest = user?.is_anonymous === true;
 
   return (
-    <AuthContext.Provider value={{ user, loading, isGuest, sendOtp, verifyOtp, signInAsGuest, logout }}>
+    <AuthContext.Provider value={{ user, loading, isGuest, signIn, signUp, signInAsGuest, logout }}>
       {children}
     </AuthContext.Provider>
   );

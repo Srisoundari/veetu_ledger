@@ -14,14 +14,15 @@
     "list": "Shopping List"
   },
   "auth": {
-    "phone_placeholder": "Mobile number (+91...)",
-    "send_otp": "Send OTP",
-    "verify": "Verify",
-    "otp_placeholder": "Enter OTP",
+    "email": "Email",
+    "password": "Password",
+    "sign_in": "Sign In",
+    "sign_up": "Create Account",
+    "no_account": "Don't have an account? Sign up",
+    "have_account": "Already have an account? Sign in",
     "continue_as_guest": "Continue as Guest",
     "guest_note": "No sign-up needed. Data may be lost if you clear your browser.",
-    "guest_banner": "You're in guest mode — data is local to this device.",
-    "sign_up": "Link your phone"
+    "guest_banner": "You're in guest mode — data is local to this device."
   },
   "expense": {
     "add": "Add Expense",
