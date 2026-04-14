@@ -1,8 +1,9 @@
 import json
 from datetime import date
 from fastapi import APIRouter, Depends, HTTPException
-from dependencies import get_current_user
-from schemas import ParseRequest
+
+# from dependencies import get_current_user
+# from schemas import ParseRequest
 from llm import get_parser
 
 router = APIRouter()
@@ -30,14 +31,28 @@ Rules:
 """
 
 
-@router.post("/parse")
-async def parse_text(body: ParseRequest, user=Depends(get_current_user)):
+# @router.post("/parse")
+# async def parse_text(body: ParseRequest, user=Depends(get_current_user)):
+#     today = date.today().isoformat()
+#     user_message = f"Today is {today}. Language hint: {body.language}.\n\nInput: {body.text}"
+
+#     try:
+#         raw = _parse(SYSTEM_PROMPT, user_message)
+#     except Exception as e:
+#         raise HTTPException(status_code=502, detail=f"LLM error: {type(e).__name__}: {e}")
+
+#     try:
+#         return json.loads(raw)
+#     except json.JSONDecodeError:
+#         raise HTTPException(status_code=422, detail=f"Could not parse input: {raw}")
+
+
+if __name__ == "__main__":
+    # quick test
+    test_input = "Bought 2kg of rice for 150 rupees today"
     today = date.today().isoformat()
-    user_message = f"Today is {today}. Language hint: {body.language}.\n\nInput: {body.text}"
 
-    raw = _parse(SYSTEM_PROMPT, user_message)
+    user_message = f"Today is {today}. Language hint: english.\n\nInput: {test_input}"
 
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=422, detail=f"Could not parse input: {raw}")
+    print(_parse(SYSTEM_PROMPT, user_message))
+    input("Press Enter to exit...")
