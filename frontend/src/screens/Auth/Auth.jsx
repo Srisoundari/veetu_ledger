@@ -5,7 +5,7 @@ import Button from "../../components/Button";
 import Input from "../../components/Input";
 
 export default function Auth() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { signIn, signUp, signInAsGuest } = useAuth();
 
   const [isSignUp, setIsSignUp] = useState(false);
@@ -81,17 +81,6 @@ export default function Auth() {
         <p className="text-xs text-gray-400 text-center">{t("auth.guest_note")}</p>
       </div>
 
-      {/* Language toggle */}
-      <button
-        onClick={() => {
-          const next = i18n.language === "en" ? "ta" : "en";
-          i18n.changeLanguage(next);
-          localStorage.setItem("lang", next);
-        }}
-        className="mt-8 text-center text-sm text-gray-400"
-      >
-        {i18n.language === "en" ? "தமிழில் காண்க" : "View in English"}
-      </button>
     </div>
   );
 }

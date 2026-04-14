@@ -1,21 +1,38 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useProjectEntries } from "../../hooks/useProjects";
+import { useAuth } from "../../hooks/useAuth";
 import PageHeader from "../../components/PageHeader";
 import Card from "../../components/Card";
 import Spinner from "../../components/Spinner";
+import NLPInput from "../../components/NLPInput";
 import ProjectEntryForm from "./ProjectEntryForm";
 import { formatCurrency, formatDate } from "../../utils/format";
 
 export default function ProjectDetail({ project, onBack }) {
   const { t } = useTranslation();
+  const { isGuest } = useAuth();
   const [showForm, setShowForm] = useState(false);
+  const [showNLP, setShowNLP]   = useState(false);
   const { entries, summary, loading, error, addEntry, removeEntry } =
     useProjectEntries(project.id);
 
   const handleSave = async (data) => {
     await addEntry(data);
     setShowForm(false);
+  };
+
+  const handleNLPResult = async (parsed) => {
+    if (parsed.type === "project_entry") {
+      await addEntry({
+        entry_date:       parsed.date,
+        day_number:       entries.length + 1,
+        work_description: parsed.work_description,
+        total_amount:     parsed.total_amount,
+        paid_amount:      parsed.paid_amount,
+      });
+      setShowNLP(false);
+    }
   };
 
   if (showForm) {
@@ -57,6 +74,23 @@ export default function ProjectDetail({ project, onBack }) {
               </div>
             </div>
           </Card>
+        )}
+
+        {/* NLP quick entry — signed-in users only */}
+        {!isGuest && (
+          <div className="bg-green-50 rounded-2xl p-3">
+            <button
+              onClick={() => setShowNLP((v) => !v)}
+              className="text-sm text-green-700 font-medium w-full text-left"
+            >
+              💬 {showNLP ? "Hide" : t("nlp.placeholder")}
+            </button>
+            {showNLP && (
+              <div className="mt-2">
+                <NLPInput onResult={handleNLPResult} />
+              </div>
+            )}
+          </div>
         )}
 
         {loading && <Spinner />}

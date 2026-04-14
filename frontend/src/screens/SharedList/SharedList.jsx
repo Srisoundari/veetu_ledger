@@ -1,17 +1,21 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSharedList } from "../../hooks/useSharedList";
+import { useAuth } from "../../hooks/useAuth";
 import PageHeader from "../../components/PageHeader";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 import Spinner from "../../components/Spinner";
+import NLPInput from "../../components/NLPInput";
 
 export default function SharedList() {
   const { t } = useTranslation();
+  const { isGuest } = useAuth();
   const [item, setItem]       = useState("");
   const [qty, setQty]         = useState("");
   const [loading, setLoading] = useState(false);
+  const [showNLP, setShowNLP] = useState(false);
   const { items, loading: listLoading, error, add, markDone, remove, clearDone, refresh } =
     useSharedList();
 
@@ -31,6 +35,13 @@ export default function SharedList() {
     }
   };
 
+  const handleNLPResult = async (parsed) => {
+    if (parsed.type === "list_item") {
+      await add({ item_name: parsed.item_name, quantity: parsed.quantity || null });
+      setShowNLP(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full">
       <PageHeader
@@ -43,6 +54,23 @@ export default function SharedList() {
       />
 
       <div className="flex-1 overflow-y-auto px-4 py-4 pb-24 flex flex-col gap-3">
+        {/* NLP quick entry — signed-in users only */}
+        {!isGuest && (
+          <div className="bg-green-50 rounded-2xl p-3">
+            <button
+              onClick={() => setShowNLP((v) => !v)}
+              className="text-sm text-green-700 font-medium w-full text-left"
+            >
+              💬 {showNLP ? "Hide" : t("nlp.placeholder")}
+            </button>
+            {showNLP && (
+              <div className="mt-2">
+                <NLPInput onResult={handleNLPResult} />
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Add item form */}
         <Card>
           <form onSubmit={handleAdd} className="flex flex-col gap-2">

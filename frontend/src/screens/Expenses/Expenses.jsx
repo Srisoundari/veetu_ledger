@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useExpenses } from "../../hooks/useExpenses";
+import { useAuth } from "../../hooks/useAuth";
 import PageHeader from "../../components/PageHeader";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
@@ -14,6 +15,7 @@ export default function Expenses() {
   const [month, setMonth]       = useState(currentMonth());
   const [showForm, setShowForm] = useState(false);
   const [showNLP, setShowNLP]   = useState(false);
+  const { isGuest } = useAuth();
   const { expenses, loading, error, add, remove } = useExpenses(month);
 
   const handleSave = async (data) => {
@@ -59,8 +61,8 @@ export default function Expenses() {
       />
 
       <div className="flex-1 overflow-y-auto px-4 py-4 pb-24 flex flex-col gap-3">
-        {/* NLP quick entry */}
-        <div className="bg-green-50 rounded-2xl p-3">
+        {/* NLP quick entry — signed-in users only */}
+        {!isGuest && <div className="bg-green-50 rounded-2xl p-3">
           <button
             onClick={() => setShowNLP((v) => !v)}
             className="text-sm text-green-700 font-medium w-full text-left"
@@ -72,7 +74,7 @@ export default function Expenses() {
               <NLPInput onResult={handleNLPResult} />
             </div>
           )}
-        </div>
+        </div>}
 
         {/* Monthly total */}
         <Card className="bg-green-600 border-0">
