@@ -34,8 +34,7 @@ export default function Auth() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center px-6">
       {/* Logo */}
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold text-green-600">வீடு</h1>
-        <p className="text-gray-400 text-sm mt-1">Veedu</p>
+        <h1 className="text-4xl font-bold text-green-600">VeetuLedger</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
