@@ -24,6 +24,11 @@ export const localExpenses = {
     save(K.expenses, [item, ...read(K.expenses)]);
     return item;
   },
+  update: (id, data) => {
+    const updated = read(K.expenses).map((e) => e.id === id ? { ...e, ...data } : e);
+    save(K.expenses, updated);
+    return updated.find((e) => e.id === id);
+  },
   delete: (id) => save(K.expenses, read(K.expenses).filter((e) => e.id !== id)),
 };
 
@@ -34,6 +39,11 @@ export const localProjects = {
     const item = { ...data, id: uid(), status: "active", created_at: now() };
     save(K.projects, [item, ...read(K.projects)]);
     return item;
+  },
+  update: (id, data) => {
+    const updated = read(K.projects).map((p) => p.id === id ? { ...p, ...data } : p);
+    save(K.projects, updated);
+    return updated.find((p) => p.id === id);
   },
   complete: (id) =>
     save(K.projects, read(K.projects).map((p) => p.id === id ? { ...p, status: "completed" } : p)),
@@ -53,6 +63,13 @@ export const localEntries = {
     };
     save(K.entries(pid), [...read(K.entries(pid)), item]);
     return item;
+  },
+  update: (pid, eid, data) => {
+    const updated = read(K.entries(pid)).map((e) =>
+      e.id === eid ? { ...e, ...data, balance: (data.total_amount ?? e.total_amount) - (data.paid_amount ?? e.paid_amount) } : e
+    );
+    save(K.entries(pid), updated);
+    return updated.find((e) => e.id === eid);
   },
   delete: (pid, eid) =>
     save(K.entries(pid), read(K.entries(pid)).filter((e) => e.id !== eid)),
@@ -74,6 +91,11 @@ export const localList = {
     const item = { ...data, id: uid(), is_done: false, created_at: now() };
     save(K.list, [...read(K.list), item]);
     return item;
+  },
+  update:    (id, data) => {
+    const updated = read(K.list).map((i) => i.id === id ? { ...i, ...data } : i);
+    save(K.list, updated);
+    return updated.find((i) => i.id === id);
   },
   markDone:  (id)   => save(K.list, read(K.list).map((i) => i.id === id ? { ...i, is_done: true } : i)),
   delete:    (id)   => save(K.list, read(K.list).filter((i) => i.id !== id)),

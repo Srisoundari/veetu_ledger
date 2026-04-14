@@ -101,7 +101,5 @@ if __name__ == "__main__":
     test_input = "Bought 2kg of rice for 150 rupees today"
     today = date.today().isoformat()
 
-    user_message = f"Today is {today}. Language hint: english.\n\nInput: {test_input}"
-
-    print(_parse(SYSTEM_PROMPT, user_message))
+    print(_parse(SYSTEM_PROMPT, test_input))
     input("Press Enter to exit...")

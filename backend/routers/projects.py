@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from database import supabase
 from dependencies import get_current_user
-from schemas import ProjectCreate, ProjectEntryCreate
+from schemas import ProjectCreate, ProjectUpdate, ProjectEntryCreate, ProjectEntryUpdate
 
 router = APIRouter()
 
@@ -30,6 +30,13 @@ async def create_project(body: ProjectCreate, user=Depends(get_current_user)):
         "name": body.name,
         "description": body.description,
     }).execute()
+    return result.data[0]
+
+
+@router.patch("/{project_id}")
+async def update_project(project_id: str, body: ProjectUpdate, user=Depends(get_current_user)):
+    data = body.model_dump(exclude_none=True)
+    result = supabase.table("projects").update(data).eq("id", project_id).execute()
     return result.data[0]
 
 
@@ -72,6 +79,14 @@ async def project_summary(project_id: str, user=Depends(get_current_user)):
     paid    = sum(e["paid_amount"]  for e in entries)
     balance = sum(e["balance"]      for e in entries)
     return {"total_amount": total, "paid_amount": paid, "balance": balance, "days": len(entries)}
+
+
+@router.patch("/{project_id}/entries/{entry_id}")
+async def update_entry(project_id: str, entry_id: str, body: ProjectEntryUpdate, user=Depends(get_current_user)):
+    data = {k: str(v) if hasattr(v, "isoformat") else v
+            for k, v in body.model_dump(exclude_none=True).items()}
+    result = supabase.table("project_entries").update(data).eq("id", entry_id).eq("project_id", project_id).execute()
+    return result.data[0]
 
 
 @router.delete("/{project_id}/entries/{entry_id}")

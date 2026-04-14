@@ -29,6 +29,14 @@ export function useSharedList() {
     return item;
   };
 
+  const update = async (id, data) => {
+    const updated = isGuest
+      ? localList.update(id, data)
+      : await listApi.update(id, data);
+    setItems((prev) => prev.map((i) => (i.id === id ? updated : i)));
+    return updated;
+  };
+
   const markDone = async (id) => {
     isGuest ? localList.markDone(id) : await listApi.markDone(id);
     setItems((prev) =>
@@ -46,5 +54,5 @@ export function useSharedList() {
     setItems((prev) => prev.filter((i) => !i.is_done));
   };
 
-  return { items, loading, error, add, markDone, remove, clearDone, refresh: load };
+  return { items, loading, error, add, update, markDone, remove, clearDone, refresh: load };
 }

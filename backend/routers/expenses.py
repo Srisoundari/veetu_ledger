@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from database import supabase
 from dependencies import get_current_user
-from schemas import ExpenseCreate
+from schemas import ExpenseCreate, ExpenseUpdate
 
 router = APIRouter()
 
@@ -18,23 +18,54 @@ def _get_household_id(user_id: str) -> str:
 async def list_expenses(month: str = None, user=Depends(get_current_user)):
     """List expenses for the household. Optionally filter by month (YYYY-MM)."""
     household_id = _get_household_id(user.id)
-    query = supabase.table("expenses").select("*").eq("household_id", household_id).order("date", desc=True)
+    query = (
+        supabase.table("expenses")
+        .select("*")
+        .eq("household_id", household_id)
+        .order("date", desc=True)
+    )
     if month:
-        query = query.gte("date", f"{month}-01").lt("date", f"{month}-32")
+        from calendar import monthrange
+
+        year, mon = map(int, month.split("-"))
+        last_day = monthrange(year, mon)[1]
+        query = query.gte("date", f"{month}-01").lte("date", f"{month}-{last_day:02d}")
     return query.execute().data
 
 
 @router.post("/")
 async def create_expense(body: ExpenseCreate, user=Depends(get_current_user)):
     household_id = _get_household_id(user.id)
-    result = supabase.table("expenses").insert({
-        "household_id": household_id,
-        "added_by": user.id,
-        "date": str(body.date),
-        "amount": body.amount,
-        "note": body.note,
-        "category": body.category,
-    }).execute()
+    result = (
+        supabase.table("expenses")
+        .insert(
+            {
+                "household_id": household_id,
+                "added_by": user.id,
+                "date": str(body.date),
+                "amount": body.amount,
+                "note": body.note,
+                "category": body.category,
+            }
+        )
+        .execute()
+    )
+    return result.data[0]
+
+
+@router.patch("/{expense_id}")
+async def update_expense(expense_id: str, body: ExpenseUpdate, user=Depends(get_current_user)):
+    data = {
+        k: str(v) if hasattr(v, "isoformat") else v
+        for k, v in body.model_dump(exclude_none=True).items()
+    }
+    result = (
+        supabase.table("expenses")
+        .update(data)
+        .eq("id", expense_id)
+        .eq("added_by", user.id)
+        .execute()
+    )
     return result.data[0]
 
 

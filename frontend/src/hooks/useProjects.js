@@ -29,6 +29,12 @@ export function useProjects() {
     return p;
   };
 
+  const update = async (id, data) => {
+    const p = isGuest ? localProjects.update(id, data) : await projectsApi.update(id, data);
+    setProjects((prev) => prev.map((proj) => (proj.id === id ? p : proj)));
+    return p;
+  };
+
   const complete = async (id) => {
     isGuest ? localProjects.complete(id) : await projectsApi.complete(id);
     setProjects((prev) =>
@@ -41,7 +47,7 @@ export function useProjects() {
     setProjects((prev) => prev.filter((p) => p.id !== id));
   };
 
-  return { projects, loading, error, create, complete, remove, refresh: load };
+  return { projects, loading, error, create, update, complete, remove, refresh: load };
 }
 
 export function useProjectEntries(projectId) {
@@ -88,6 +94,15 @@ export function useProjectEntries(projectId) {
     return entry;
   };
 
+  const updateEntry = async (entryId, data) => {
+    const entry = isGuest
+      ? localEntries.update(projectId, entryId, data)
+      : await projectsApi.updateEntry(projectId, entryId, data);
+    setEntries((prev) => prev.map((e) => (e.id === entryId ? entry : e)));
+    setSummary(isGuest ? localEntries.summary(projectId) : await projectsApi.summary(projectId));
+    return entry;
+  };
+
   const removeEntry = async (entryId) => {
     isGuest
       ? localEntries.delete(projectId, entryId)
@@ -100,5 +115,5 @@ export function useProjectEntries(projectId) {
     );
   };
 
-  return { entries, summary, loading, error, addEntry, removeEntry, refresh: load };
+  return { entries, summary, loading, error, addEntry, updateEntry, removeEntry, refresh: load };
 }

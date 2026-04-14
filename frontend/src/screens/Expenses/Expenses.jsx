@@ -5,6 +5,7 @@ import { useAuth } from "../../hooks/useAuth";
 import PageHeader from "../../components/PageHeader";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
+import Input from "../../components/Input";
 import Spinner from "../../components/Spinner";
 import NLPInput from "../../components/NLPInput";
 import ExpenseForm from "./ExpenseForm";
@@ -12,11 +13,14 @@ import { formatCurrency, formatDate, currentMonth } from "../../utils/format";
 
 export default function Expenses() {
   const { t } = useTranslation();
-  const [month, setMonth]       = useState(currentMonth());
-  const [showForm, setShowForm] = useState(false);
-  const [showNLP, setShowNLP]   = useState(false);
+  const [month, setMonth]         = useState(currentMonth());
+  const [showForm, setShowForm]   = useState(false);
+  const [showNLP, setShowNLP]     = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm]   = useState({});
+  const [editSaving, setEditSaving] = useState(false);
   const { isGuest } = useAuth();
-  const { expenses, loading, error, add, remove } = useExpenses(month);
+  const { expenses, loading, error, add, update, remove } = useExpenses(month);
 
   const handleSave = async (data) => {
     await add(data);
@@ -24,14 +28,26 @@ export default function Expenses() {
   };
 
   const handleNLPResult = async (parsed) => {
-    if (parsed.type === "expense") {
-      await add({
-        date:     parsed.date,
-        amount:   parsed.amount,
-        note:     parsed.note,
-        category: parsed.category,
-      });
-      setShowNLP(false);
+    if (parsed.type !== "expense") {
+      throw new Error(`Expected an expense, but got "${parsed.type}". Try rephrasing.`);
+    }
+    await add({
+      date:     parsed.date,
+      amount:   parsed.amount,
+      note:     parsed.note,
+      category: parsed.category,
+    });
+    setShowNLP(false);
+  };
+
+  const startEdit = (e) => { setEditingId(e.id); setEditForm({ date: e.date, amount: e.amount, note: e.note || "", category: e.category || "" }); };
+  const saveEdit = async (id) => {
+    setEditSaving(true);
+    try {
+      await update(id, { ...editForm, amount: parseFloat(editForm.amount) });
+      setEditingId(null);
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -90,17 +106,41 @@ export default function Expenses() {
         )}
 
         {expenses.map((e) => (
-          <Card key={e.id} className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-gray-800">{formatCurrency(e.amount)}</p>
-              <p className="text-sm text-gray-400">{e.note || e.category} · {formatDate(e.date)}</p>
-            </div>
-            <button
-              onClick={() => remove(e.id)}
-              className="text-gray-300 hover:text-red-400 text-lg px-2"
-            >
-              ×
-            </button>
+          <Card key={e.id}>
+            {editingId === e.id ? (
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <Input type="number" placeholder="Amount" value={editForm.amount}
+                    onChange={(ev) => setEditForm((f) => ({ ...f, amount: ev.target.value }))} className="flex-1" />
+                  <Input type="date" value={editForm.date}
+                    onChange={(ev) => setEditForm((f) => ({ ...f, date: ev.target.value }))} className="flex-1" />
+                </div>
+                <Input placeholder="Note" value={editForm.note}
+                  onChange={(ev) => setEditForm((f) => ({ ...f, note: ev.target.value }))} />
+                <Input placeholder="Category" value={editForm.category}
+                  onChange={(ev) => setEditForm((f) => ({ ...f, category: ev.target.value }))} />
+                <div className="flex gap-2">
+                  <Button onClick={() => saveEdit(e.id)} disabled={editSaving} full>
+                    {editSaving ? "Saving..." : "Save"}
+                  </Button>
+                  <Button variant="secondary" full onClick={() => setEditingId(null)}>Cancel</Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-gray-800">{formatCurrency(e.amount)}</p>
+                  <p className="text-sm text-gray-400">{e.note || e.category} · {formatDate(e.date)}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => startEdit(e)}
+                    className="text-xs text-green-600 font-medium px-2 py-1 hover:bg-green-50 rounded-lg">
+                    Edit
+                  </button>
+                  <button onClick={() => remove(e.id)} className="text-gray-300 hover:text-red-400 text-lg px-2">×</button>
+                </div>
+              </div>
+            )}
           </Card>
         ))}
       </div>

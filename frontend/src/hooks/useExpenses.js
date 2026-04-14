@@ -33,10 +33,18 @@ export function useExpenses(month) {
     return created;
   };
 
+  const update = async (id, data) => {
+    const updated = isGuest
+      ? localExpenses.update(id, data)
+      : await expensesApi.update(id, data);
+    setExpenses((prev) => prev.map((e) => (e.id === id ? updated : e)));
+    return updated;
+  };
+
   const remove = async (id) => {
     isGuest ? localExpenses.delete(id) : await expensesApi.delete(id);
     setExpenses((prev) => prev.filter((e) => e.id !== id));
   };
 
-  return { expenses, loading, error, add, remove, refresh: load };
+  return { expenses, loading, error, add, update, remove, refresh: load };
 }
