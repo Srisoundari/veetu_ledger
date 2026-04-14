@@ -16,36 +16,38 @@ export default function Expenses() {
   const [month, setMonth]         = useState(currentMonth());
   const [showForm, setShowForm]   = useState(false);
   const [showNLP, setShowNLP]     = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm]   = useState({});
+  const [editingId, setEditingId]   = useState(null);
+  const [editForm, setEditForm]     = useState({});
   const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError]   = useState(null);
   const { isGuest } = useAuth();
-  const { expenses, loading, error, add, update, remove } = useExpenses(month);
+  const { expenses, loading, error, add, update, remove, refresh } = useExpenses(month);
 
   const handleSave = async (data) => {
     await add(data);
     setShowForm(false);
   };
 
-  const handleNLPResult = async (parsed) => {
-    if (parsed.type !== "expense") {
-      throw new Error(`Expected an expense, but got "${parsed.type}". Try rephrasing.`);
-    }
-    await add({
-      date:     parsed.date,
-      amount:   parsed.amount,
-      note:     parsed.note,
-      category: parsed.category,
-    });
+  const handleNLPResult = async (savedItems) => {
+    const newExpenses = savedItems.filter((i) => i.type === "expense");
+    if (newExpenses.length === 0) throw new Error("No expenses found. Try rephrasing.");
+    await refresh();
     setShowNLP(false);
   };
 
-  const startEdit = (e) => { setEditingId(e.id); setEditForm({ date: e.date, amount: e.amount, note: e.note || "", category: e.category || "" }); };
+  const startEdit = (e) => {
+    setEditingId(e.id);
+    setEditError(null);
+    setEditForm({ date: e.date, amount: e.amount, note: e.note || "", category: e.category || "" });
+  };
   const saveEdit = async (id) => {
     setEditSaving(true);
+    setEditError(null);
     try {
       await update(id, { ...editForm, amount: parseFloat(editForm.amount) });
       setEditingId(null);
+    } catch (e) {
+      setEditError(e.message);
     } finally {
       setEditSaving(false);
     }
@@ -119,6 +121,7 @@ export default function Expenses() {
                   onChange={(ev) => setEditForm((f) => ({ ...f, note: ev.target.value }))} />
                 <Input placeholder="Category" value={editForm.category}
                   onChange={(ev) => setEditForm((f) => ({ ...f, category: ev.target.value }))} />
+                {editError && <p className="text-xs text-red-500">{editError}</p>}
                 <div className="flex gap-2">
                   <Button onClick={() => saveEdit(e.id)} disabled={editSaving} full>
                     {editSaving ? "Saving..." : "Save"}

@@ -5,20 +5,22 @@ import Button from "./Button";
 import Input from "./Input";
 import { formatCurrency, formatDate } from "../utils/format";
 
-export default function NLPInput({ onResult }) {
+// projectId — pass when used inside ProjectDetail so entries are linked to it
+// fillOnly  — skips /nlp/save and passes parsed items straight to onResult (for form pre-fill)
+export default function NLPInput({ onResult, projectId = null, fillOnly = false }) {
   const { t, i18n } = useTranslation();
   const [text, setText]       = useState("");
-  const [parsed, setParsed]   = useState(null);
+  const [parsed, setParsed]   = useState(null);   // array | null
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);
 
   const handleParse = async () => {
     if (!text.trim()) return;
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-      const result = await nlpApi.parse(text, i18n.language);
-      setParsed(result);
+      const items = await nlpApi.parse(text, i18n.language);
+      setParsed(items);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -27,9 +29,11 @@ export default function NLPInput({ onResult }) {
   };
 
   const handleConfirm = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      await onResult(parsed);
+      const result = fillOnly ? parsed : await nlpApi.save(parsed, projectId);
+      await onResult(result);
       setParsed(null);
       setText("");
     } catch (e) {
@@ -41,6 +45,7 @@ export default function NLPInput({ onResult }) {
 
   const handleDiscard = () => {
     setParsed(null);
+    setError(null);
   };
 
   return (
@@ -54,7 +59,7 @@ export default function NLPInput({ onResult }) {
           onKeyDown={(e) => e.key === "Enter" && handleParse()}
         />
         <Button onClick={handleParse} disabled={loading || !text.trim()}>
-          {loading ? "..." : t("nlp.parse")}
+          {loading && !parsed ? "..." : t("nlp.parse")}
         </Button>
       </div>
 
@@ -62,13 +67,28 @@ export default function NLPInput({ onResult }) {
 
       {parsed && (
         <div className="bg-green-50 border border-green-200 rounded-2xl p-4 flex flex-col gap-3">
-          <p className="text-sm font-medium text-green-800">{t("nlp.confirm")}</p>
+          <p className="text-sm font-medium text-green-800">
+            {parsed.length === 1 ? t("nlp.confirm") : `${parsed.length} items to save`}
+          </p>
 
-          <ParsedPreview parsed={parsed} />
+          <div className="flex flex-col gap-2">
+            {parsed.map((item, i) => (
+              <div key={i} className="bg-white rounded-xl p-3 border border-green-100">
+                <span className="text-xs font-medium text-green-600 uppercase tracking-wide mb-1.5 block">
+                  {item.type?.replace("_", " ")}
+                </span>
+                <ParsedPreview parsed={item} />
+              </div>
+            ))}
+          </div>
 
           <div className="flex gap-2">
-            <Button onClick={handleConfirm} full>{t("nlp.save")}</Button>
-            <Button onClick={handleDiscard} variant="secondary" full>{t("nlp.edit")}</Button>
+            <Button onClick={handleConfirm} disabled={loading} full>
+              {loading ? "Saving..." : t("nlp.save")}
+            </Button>
+            <Button onClick={handleDiscard} variant="secondary" full>
+              {t("nlp.edit")}
+            </Button>
           </div>
         </div>
       )}
@@ -79,19 +99,20 @@ export default function NLPInput({ onResult }) {
 function ParsedPreview({ parsed }) {
   if (!parsed) return null;
 
-  const rows = Object.entries(parsed)
-    .filter(([k]) => k !== "type")
-    .map(([k, v]) => {
-      const val = typeof v === "number" && k.includes("amount") || k === "balance" || k === "paid"
-        ? formatCurrency(v)
-        : k === "date" ? formatDate(v) : String(v);
-      return (
-        <div key={k} className="flex justify-between text-sm">
-          <span className="text-gray-500 capitalize">{k.replace(/_/g, " ")}</span>
-          <span className="font-medium text-gray-800">{val}</span>
-        </div>
-      );
-    });
-
-  return <div className="flex flex-col gap-1.5">{rows}</div>;
+  return (
+    <div className="flex flex-col gap-1.5">
+      {Object.entries(parsed)
+        .filter(([k]) => k !== "type")
+        .map(([k, v]) => {
+          const isAmount = typeof v === "number" && (k.includes("amount") || k === "balance" || k === "paid");
+          const val = isAmount ? formatCurrency(v) : k === "date" ? formatDate(v) : String(v ?? "");
+          return (
+            <div key={k} className="flex justify-between text-sm">
+              <span className="text-gray-500 capitalize">{k.replace(/_/g, " ")}</span>
+              <span className="font-medium text-gray-800">{val}</span>
+            </div>
+          );
+        })}
+    </div>
+  );
 }

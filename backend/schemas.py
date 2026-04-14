@@ -6,12 +6,13 @@ from datetime import date
 # ---------- Profile ----------
 class ProfileUpdate(BaseModel):
     name: str
-    language: str = "en"   # 'en' or 'ta'
+    language: str = "en"  # 'en' or 'ta'
 
 
 # ---------- Household ----------
 class HouseholdCreate(BaseModel):
     name: str
+
 
 class HouseholdRename(BaseModel):
     name: str
@@ -23,6 +24,7 @@ class ExpenseCreate(BaseModel):
     amount: float
     note: Optional[str] = None
     category: Optional[str] = None
+
 
 class ExpenseUpdate(BaseModel):
     date: Optional[date] = None
@@ -42,6 +44,7 @@ class ProjectCreate(BaseModel):
     name: str
     description: Optional[str] = None
 
+
 class ProjectUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
@@ -53,6 +56,7 @@ class ProjectEntryCreate(BaseModel):
     work_description: Optional[str] = None
     total_amount: float
     paid_amount: float
+
 
 class ProjectEntryUpdate(BaseModel):
     entry_date: Optional[date] = None
@@ -67,6 +71,7 @@ class ListItemCreate(BaseModel):
     item_name: str
     quantity: Optional[str] = None
 
+
 class ListItemUpdate(BaseModel):
     item_name: Optional[str] = None
     quantity: Optional[str] = None
@@ -75,4 +80,9 @@ class ListItemUpdate(BaseModel):
 # ---------- NLP ----------
 class ParseRequest(BaseModel):
     text: str
-    language: str = "en"   # 'en' or 'ta'
+    language: str = "en"  # 'en' or 'ta'
+
+
+class SaveRequest(BaseModel):
+    items: list[dict]
+    project_id: Optional[str] = None  # required when saving project_entry items

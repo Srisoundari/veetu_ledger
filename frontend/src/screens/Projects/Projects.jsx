@@ -18,6 +18,7 @@ export default function Projects() {
   const [editingId, setEditingId]   = useState(null);
   const [editForm, setEditForm]     = useState({});
   const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError]   = useState(null);
   const { projects, loading: listLoading, error, create, update, complete, remove } = useProjects();
 
   if (selected) {
@@ -26,9 +27,12 @@ export default function Projects() {
 
   const saveEdit = async (id) => {
     setEditSaving(true);
+    setEditError(null);
     try {
       await update(id, editForm);
       setEditingId(null);
+    } catch (e) {
+      setEditError(e.message);
     } finally {
       setEditSaving(false);
     }
@@ -86,6 +90,7 @@ export default function Projects() {
                   onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))} autoFocus />
                 <Input label="Description" value={editForm.description || ""}
                   onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} />
+                {editError && <p className="text-xs text-red-500">{editError}</p>}
                 <div className="flex gap-2">
                   <Button onClick={() => saveEdit(p.id)} disabled={editSaving || !editForm.name?.trim()} full>
                     {editSaving ? "Saving..." : "Save"}
@@ -115,7 +120,7 @@ export default function Projects() {
                       ✓ Mark complete
                     </button>
                   )}
-                  <button onClick={(e) => { e.stopPropagation(); setEditingId(p.id); setEditForm({ name: p.name, description: p.description || "" }); }}
+                  <button onClick={(e) => { e.stopPropagation(); setEditingId(p.id); setEditError(null); setEditForm({ name: p.name, description: p.description || "" }); }}
                     className="text-xs text-blue-500 font-medium hover:text-blue-600">
                     Edit
                   </button>

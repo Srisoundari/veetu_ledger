@@ -52,7 +52,7 @@
     "parse": "Parse",
     "confirm": "Does this look right?",
     "save": "Save",
-    "edit": "Edit"
+    "edit": "Retry"
   },
   "household": {
     "create": "Create Household",

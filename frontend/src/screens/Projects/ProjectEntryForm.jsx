@@ -34,16 +34,17 @@ export default function ProjectEntryForm({ onSave, onCancel, dayNumber }) {
     }
   };
 
-  const handleNLPResult = async (parsed) => {
-    if (parsed.type !== "project_entry") {
-      throw new Error(`Expected a project entry, but got "${parsed.type}". Try rephrasing.`);
-    }
+  // ProjectEntryForm uses NLPInput only to pre-fill fields (no DB save from here).
+  // We call nlpApi.parse directly and fill from the first project_entry in the result.
+  const handleNLPResult = async (savedItems) => {
+    const entry = savedItems.find((i) => i.type === "project_entry");
+    if (!entry) throw new Error("No project entry found. Try rephrasing.");
     setForm((f) => ({
       ...f,
-      entry_date:       parsed.date             || f.entry_date,
-      work_description: parsed.work_description || f.work_description,
-      total_amount:     parsed.total_amount     || f.total_amount,
-      paid_amount:      parsed.paid_amount      || f.paid_amount,
+      entry_date:       entry.entry_date  || entry.date || f.entry_date,
+      work_description: entry.work_description          || f.work_description,
+      total_amount:     entry.total_amount              ?? f.total_amount,
+      paid_amount:      entry.paid_amount               ?? f.paid_amount,
     }));
     setShowNLP(false);
   };
@@ -61,7 +62,7 @@ export default function ProjectEntryForm({ onSave, onCancel, dayNumber }) {
         </button>
         {showNLP && (
           <div className="mt-2">
-            <NLPInput onResult={handleNLPResult} />
+            <NLPInput onResult={handleNLPResult} fillOnly />
           </div>
         )}
       </div>
