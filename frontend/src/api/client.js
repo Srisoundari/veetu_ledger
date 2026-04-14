@@ -1,20 +1,25 @@
-import { createClient } from "@supabase/supabase-js";
-
-const _supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL     || "",
-  import.meta.env.VITE_SUPABASE_ANON_KEY || ""
-);
-
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-// Always get a fresh token directly from Supabase session
-async function getToken() {
-  const { data } = await _supabase.auth.getSession();
-  return data.session?.access_token ?? null;
+// Read token synchronously from localStorage — no network call
+function getToken() {
+  // Try our manually stored key first (set by AuthContext on sign in)
+  const manual = localStorage.getItem("access_token");
+  if (manual) return manual;
+
+  // Fall back to Supabase's own session key
+  const url = import.meta.env.VITE_SUPABASE_URL || "";
+  const ref = url.split("//")[1]?.split(".")[0];
+  if (ref) {
+    try {
+      const raw = localStorage.getItem(`sb-${ref}-auth-token`);
+      if (raw) return JSON.parse(raw).access_token;
+    } catch {}
+  }
+  return null;
 }
 
 async function request(method, path, body = null) {
-  const token = await getToken();
+  const token = getToken();
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
     headers: {
