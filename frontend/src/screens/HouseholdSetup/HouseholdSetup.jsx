@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../hooks/useAuth";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 
@@ -7,6 +8,7 @@ const MODES = { CHOOSE: "choose", CREATE: "create", JOIN: "join" };
 
 export default function HouseholdSetup({ onDone }) {
   const { t } = useTranslation();
+  const { logout } = useAuth();
   const [mode, setMode]     = useState(MODES.CHOOSE);
   const [name, setName]     = useState("");
   const [code, setCode]     = useState("");
@@ -78,6 +80,13 @@ export default function HouseholdSetup({ onDone }) {
           <Button variant="ghost" full onClick={() => setMode(MODES.CHOOSE)}>← Back</Button>
         </form>
       )}
+
+      <button
+        onClick={logout}
+        className="mt-8 text-xs text-gray-400 underline text-center w-full"
+      >
+        Sign out
+      </button>
     </div>
   );
 }

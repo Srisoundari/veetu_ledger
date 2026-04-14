@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from database import supabase
 from dependencies import get_current_user
-from schemas import ListItemCreate
+from schemas import ListItemCreate, ListItemUpdate
 
 router = APIRouter()
 
@@ -29,6 +29,13 @@ async def add_item(body: ListItemCreate, user=Depends(get_current_user)):
         "item_name": body.item_name,
         "quantity": body.quantity,
     }).execute()
+    return result.data[0]
+
+
+@router.patch("/{item_id}")
+async def update_item(item_id: str, body: ListItemUpdate, user=Depends(get_current_user)):
+    data = body.model_dump(exclude_none=True)
+    result = supabase.table("list_items").update(data).eq("id", item_id).execute()
     return result.data[0]
 
 

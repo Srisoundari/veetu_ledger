@@ -1,13 +1,13 @@
 import json
 from datetime import date
 from fastapi import APIRouter, Depends, HTTPException
-from anthropic import Anthropic
+
 from dependencies import get_current_user
 from schemas import ParseRequest
-import os
+from llm import get_parser
 
 router = APIRouter()
-client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+_parse = get_parser()
 
 SYSTEM_PROMPT = """You are a parser for a household finance app used in India.
 Extract structured data from the user's text and return ONLY valid JSON — no explanation.
@@ -36,14 +36,10 @@ async def parse_text(body: ParseRequest, user=Depends(get_current_user)):
     today = date.today().isoformat()
     user_message = f"Today is {today}. Language hint: {body.language}.\n\nInput: {body.text}"
 
-    message = client.messages.create(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=256,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": user_message}],
-    )
-
-    raw = message.content[0].text.strip()
+    try:
+        raw = _parse(SYSTEM_PROMPT, user_message)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"LLM error: {type(e).__name__}: {e}")
 
     try:
         return json.loads(raw)

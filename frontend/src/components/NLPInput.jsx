@@ -26,10 +26,17 @@ export default function NLPInput({ onResult }) {
     }
   };
 
-  const handleConfirm = () => {
-    onResult(parsed);
-    setParsed(null);
-    setText("");
+  const handleConfirm = async () => {
+    try {
+      setLoading(true);
+      await onResult(parsed);
+      setParsed(null);
+      setText("");
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDiscard = () => {

@@ -34,17 +34,18 @@ export default function ProjectEntryForm({ onSave, onCancel, dayNumber }) {
     }
   };
 
-  const handleNLPResult = (parsed) => {
-    if (parsed.type === "project_entry") {
-      setForm((f) => ({
-        ...f,
-        entry_date:       parsed.date        || f.entry_date,
-        work_description: parsed.work_description || f.work_description,
-        total_amount:     parsed.total_amount || f.total_amount,
-        paid_amount:      parsed.paid_amount  || f.paid_amount,
-      }));
-      setShowNLP(false);
+  const handleNLPResult = async (parsed) => {
+    if (parsed.type !== "project_entry") {
+      throw new Error(`Expected a project entry, but got "${parsed.type}". Try rephrasing.`);
     }
+    setForm((f) => ({
+      ...f,
+      entry_date:       parsed.date             || f.entry_date,
+      work_description: parsed.work_description || f.work_description,
+      total_amount:     parsed.total_amount     || f.total_amount,
+      paid_amount:      parsed.paid_amount      || f.paid_amount,
+    }));
+    setShowNLP(false);
   };
 
   return (

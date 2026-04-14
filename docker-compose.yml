@@ -11,6 +11,9 @@ services:
     volumes:
       # Hot reload in dev — remove in production
       - ./backend:/app
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     restart: unless-stopped
 
   frontend:

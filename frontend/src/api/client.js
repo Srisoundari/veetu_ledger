@@ -1,30 +1,53 @@
+import { supabase } from "../lib/supabase";
+
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 function getToken() {
-  return localStorage.getItem("access_token");
+  return localStorage.getItem("access_token") || null;
 }
 
-async function request(method, path, body = null) {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${getToken()}`,
-    },
-    body: body ? JSON.stringify(body) : null,
-  });
+async function request(method, path, body = null, _retry = true) {
+  const token = getToken();
+  const controller = new AbortController();
+  const timer = setTimeout(
+    () => controller.abort(new DOMException("Request timed out", "TimeoutError")),
+    10_000
+  );
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(err.detail || "Request failed");
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method,
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: body ? JSON.stringify(body) : null,
+    });
+
+    // Token expired — refresh once and retry
+    if (res.status === 401 && _retry) {
+      const { data } = await supabase.auth.refreshSession();
+      if (data.session?.access_token) {
+        localStorage.setItem("access_token", data.session.access_token);
+        return request(method, path, body, false);
+      }
+    }
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(err.detail || "Request failed");
+    }
+
+    return res.json();
+  } finally {
+    clearTimeout(timer);
   }
-
-  return res.json();
 }
 
 export const http = {
-  get:    (path)        => request("GET",    path),
-  post:   (path, body)  => request("POST",   path, body),
-  patch:  (path, body)  => request("PATCH",  path, body),
-  delete: (path)        => request("DELETE", path),
+  get:    (path)       => request("GET",    path),
+  post:   (path, body) => request("POST",   path, body),
+  patch:  (path, body) => request("PATCH",  path, body),
+  delete: (path)       => request("DELETE", path),
 };
