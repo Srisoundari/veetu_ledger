@@ -1,15 +1,25 @@
+import { createClient } from "@supabase/supabase-js";
+
+const _supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL     || "",
+  import.meta.env.VITE_SUPABASE_ANON_KEY || ""
+);
+
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-function getToken() {
-  return localStorage.getItem("access_token");
+// Always get a fresh token directly from Supabase session
+async function getToken() {
+  const { data } = await _supabase.auth.getSession();
+  return data.session?.access_token ?? null;
 }
 
 async function request(method, path, body = null) {
+  const token = await getToken();
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${getToken()}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: body ? JSON.stringify(body) : null,
   });
