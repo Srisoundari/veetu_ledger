@@ -6,7 +6,11 @@ app = FastAPI(title="Finance App API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # tighten to your Vercel URL in production
+    allow_origins=[
+        "https://veetuledger.vercel.app",
+        "http://localhost:5173",
+        "http://localhost:4173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
