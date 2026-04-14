@@ -1,9 +1,10 @@
 import { useTranslation } from "react-i18next";
 
 const tabs = [
-  { key: "expenses", icon: "₹",  labelKey: "tabs.expenses" },
-  { key: "projects", icon: "🏗",  labelKey: "tabs.projects" },
-  { key: "list",     icon: "🛒",  labelKey: "tabs.list"     },
+  { key: "expenses",  icon: "₹",  labelKey: "tabs.expenses" },
+  { key: "projects",  icon: "🏗", labelKey: "tabs.projects" },
+  { key: "list",      icon: "🛒", labelKey: "tabs.list"     },
+  { key: "household", icon: "🏠", label: "Household"        },
 ];
 
 export default function BottomNav({ active, onChange }) {
@@ -22,7 +23,7 @@ export default function BottomNav({ active, onChange }) {
           `}
         >
           <span className="text-xl leading-none">{tab.icon}</span>
-          <span>{t(tab.labelKey)}</span>
+          <span>{tab.labelKey ? t(tab.labelKey) : tab.label}</span>
         </button>
       ))}
     </nav>

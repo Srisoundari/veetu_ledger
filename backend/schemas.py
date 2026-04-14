@@ -13,6 +13,9 @@ class ProfileUpdate(BaseModel):
 class HouseholdCreate(BaseModel):
     name: str
 
+class HouseholdRename(BaseModel):
+    name: str
+
 
 # ---------- Expense ----------
 class ExpenseCreate(BaseModel):

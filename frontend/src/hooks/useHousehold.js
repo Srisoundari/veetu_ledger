@@ -35,5 +35,22 @@ export function useHousehold(user) {
     return h;
   };
 
-  return { household, loading, error, create, join, refresh: load };
+  const rename = async (name) => {
+    const h = await householdsApi.rename(name);
+    setHousehold((prev) => ({ ...prev, name: h.name }));
+    return h;
+  };
+
+  const newInvite = async () => {
+    const h = await householdsApi.newInvite();
+    setHousehold((prev) => ({ ...prev, invite_code: h.invite_code }));
+    return h;
+  };
+
+  const leave = async () => {
+    await householdsApi.leave();
+    setHousehold(null);
+  };
+
+  return { household, loading, error, create, join, rename, newInvite, leave, refresh: load };
 }
