@@ -1,10 +1,10 @@
 -- ============================================================
--- Finance App - Supabase Schema
--- Run this in Supabase SQL Editor
+-- VeetuLedger - Supabase Schema
+-- Safe to re-run on existing database (idempotent)
 -- ============================================================
 
 -- Households (wife + husband share one)
-CREATE TABLE households (
+CREATE TABLE IF NOT EXISTS households (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name        TEXT NOT NULL,
   invite_code TEXT UNIQUE NOT NULL,
@@ -12,11 +12,11 @@ CREATE TABLE households (
 );
 
 -- User profiles (extends Supabase auth.users)
-CREATE TABLE profiles (
+CREATE TABLE IF NOT EXISTS profiles (
   id           UUID REFERENCES auth.users PRIMARY KEY,
   phone        TEXT,
   name         TEXT,
-  language     TEXT DEFAULT 'en',       -- 'en' or 'ta'
+  language     TEXT DEFAULT 'en',
   household_id UUID REFERENCES households(id),
   created_at   TIMESTAMPTZ DEFAULT NOW()
 );
@@ -26,17 +26,21 @@ CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO profiles (id)
-  VALUES (NEW.id);
+  VALUES (NEW.id)
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+EXCEPTION WHEN others THEN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
 
 -- Daily expenses
-CREATE TABLE expenses (
+CREATE TABLE IF NOT EXISTS expenses (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   household_id UUID REFERENCES households(id) NOT NULL,
   added_by     UUID REFERENCES profiles(id) NOT NULL,
@@ -48,17 +52,17 @@ CREATE TABLE expenses (
 );
 
 -- Projects (e.g. "Kitchen Renovation")
-CREATE TABLE projects (
+CREATE TABLE IF NOT EXISTS projects (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   household_id UUID REFERENCES households(id) NOT NULL,
   name         TEXT NOT NULL,
   description  TEXT,
-  status       TEXT DEFAULT 'active',   -- 'active' | 'completed'
+  status       TEXT DEFAULT 'active',
   created_at   TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Project daily entries (day-wise work log)
-CREATE TABLE project_entries (
+CREATE TABLE IF NOT EXISTS project_entries (
   id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id       UUID REFERENCES projects(id) NOT NULL,
   entry_date       DATE DEFAULT CURRENT_DATE,
@@ -71,7 +75,7 @@ CREATE TABLE project_entries (
 );
 
 -- Shared shopping list
-CREATE TABLE list_items (
+CREATE TABLE IF NOT EXISTS list_items (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   household_id UUID REFERENCES households(id) NOT NULL,
   added_by     UUID REFERENCES profiles(id) NOT NULL,
@@ -84,7 +88,6 @@ CREATE TABLE list_items (
 
 -- ============================================================
 -- Row Level Security (RLS)
--- Users can only access their household's data
 -- ============================================================
 
 ALTER TABLE households       ENABLE ROW LEVEL SECURITY;
@@ -95,28 +98,33 @@ ALTER TABLE project_entries  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE list_items       ENABLE ROW LEVEL SECURITY;
 
 -- Profiles: own row only
+DROP POLICY IF EXISTS "profiles_own" ON profiles;
 CREATE POLICY "profiles_own" ON profiles
   FOR ALL USING (auth.uid() = id);
 
 -- Households: members only
+DROP POLICY IF EXISTS "households_member" ON households;
 CREATE POLICY "households_member" ON households
   FOR ALL USING (
     id IN (SELECT household_id FROM profiles WHERE id = auth.uid())
   );
 
 -- Expenses: same household
+DROP POLICY IF EXISTS "expenses_household" ON expenses;
 CREATE POLICY "expenses_household" ON expenses
   FOR ALL USING (
     household_id IN (SELECT household_id FROM profiles WHERE id = auth.uid())
   );
 
 -- Projects: same household
+DROP POLICY IF EXISTS "projects_household" ON projects;
 CREATE POLICY "projects_household" ON projects
   FOR ALL USING (
     household_id IN (SELECT household_id FROM profiles WHERE id = auth.uid())
   );
 
 -- Project entries: via project's household
+DROP POLICY IF EXISTS "project_entries_household" ON project_entries;
 CREATE POLICY "project_entries_household" ON project_entries
   FOR ALL USING (
     project_id IN (
@@ -127,6 +135,7 @@ CREATE POLICY "project_entries_household" ON project_entries
   );
 
 -- List items: same household
+DROP POLICY IF EXISTS "list_items_household" ON list_items;
 CREATE POLICY "list_items_household" ON list_items
   FOR ALL USING (
     household_id IN (SELECT household_id FROM profiles WHERE id = auth.uid())
