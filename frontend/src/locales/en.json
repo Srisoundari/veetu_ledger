@@ -1,0 +1,49 @@
+{
+  "app_name": "Home Finance",
+  "tabs": {
+    "expenses": "Expenses",
+    "projects": "Projects",
+    "list": "Shopping List"
+  },
+  "auth": {
+    "phone_placeholder": "Mobile number (+91...)",
+    "send_otp": "Send OTP",
+    "verify": "Verify",
+    "otp_placeholder": "Enter OTP"
+  },
+  "expense": {
+    "add": "Add Expense",
+    "amount": "Amount (₹)",
+    "note": "Note",
+    "category": "Category",
+    "date": "Date"
+  },
+  "project": {
+    "add": "New Project",
+    "name": "Project Name",
+    "add_entry": "Add Day Entry",
+    "day": "Day",
+    "work": "Work Done",
+    "total": "Total (₹)",
+    "paid": "Paid (₹)",
+    "balance": "Balance (₹)"
+  },
+  "list": {
+    "add": "Add Item",
+    "item": "Item name",
+    "quantity": "Quantity",
+    "clear_done": "Clear done items"
+  },
+  "nlp": {
+    "placeholder": "Type or speak... e.g. gave worker 200 out of 500",
+    "parse": "Parse",
+    "confirm": "Does this look right?",
+    "save": "Save",
+    "edit": "Edit"
+  },
+  "household": {
+    "create": "Create Household",
+    "join": "Join with code",
+    "invite_code": "Invite Code"
+  }
+}
