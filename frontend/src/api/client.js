@@ -13,14 +13,16 @@ async function request(method, path, body = null) {
     },
     body: body ? JSON.stringify(body) : null,
   });
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(err.detail || "Request failed");
   }
+
   return res.json();
 }
 
-export const api = {
+export const http = {
   get:    (path)        => request("GET",    path),
   post:   (path, body)  => request("POST",   path, body),
   patch:  (path, body)  => request("PATCH",  path, body),

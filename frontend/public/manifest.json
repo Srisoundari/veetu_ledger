@@ -1,6 +1,6 @@
 {
-  "name": "MyKhata",
-  "short_name": "MyKhata",
+  "name": "Veedu",
+  "short_name": "Veedu",
   "description": "Family expense tracker & shared list",
   "start_url": "/",
   "display": "standalone",

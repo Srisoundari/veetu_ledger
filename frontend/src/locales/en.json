@@ -1,5 +1,13 @@
 {
-  "app_name": "Home Finance",
+  "app_name": "Veedu",
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "back": "Back"
+  },
   "tabs": {
     "expenses": "Expenses",
     "projects": "Projects",
@@ -9,7 +17,11 @@
     "phone_placeholder": "Mobile number (+91...)",
     "send_otp": "Send OTP",
     "verify": "Verify",
-    "otp_placeholder": "Enter OTP"
+    "otp_placeholder": "Enter OTP",
+    "continue_as_guest": "Continue as Guest",
+    "guest_note": "No sign-up needed. Data may be lost if you clear your browser.",
+    "guest_banner": "You're in guest mode — data is local to this device.",
+    "sign_up": "Link your phone"
   },
   "expense": {
     "add": "Add Expense",
@@ -22,7 +34,7 @@
     "add": "New Project",
     "name": "Project Name",
     "add_entry": "Add Day Entry",
-    "day": "Day",
+    "day": "Day Number",
     "work": "Work Done",
     "total": "Total (₹)",
     "paid": "Paid (₹)",
@@ -31,11 +43,11 @@
   "list": {
     "add": "Add Item",
     "item": "Item name",
-    "quantity": "Quantity",
-    "clear_done": "Clear done items"
+    "quantity": "Qty",
+    "clear_done": "Clear done"
   },
   "nlp": {
-    "placeholder": "Type or speak... e.g. gave worker 200 out of 500",
+    "placeholder": "Type freely... e.g. gave worker 200 out of 500",
     "parse": "Parse",
     "confirm": "Does this look right?",
     "save": "Save",

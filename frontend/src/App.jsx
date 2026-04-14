@@ -1,24 +1,63 @@
-import { useTranslation } from "react-i18next";
+import { useState } from "react";
+import { AuthProvider } from "./context/AuthContext";
+import { useAuth } from "./hooks/useAuth";
+import { useHousehold } from "./hooks/useHousehold";
+import Auth from "./screens/Auth/Auth";
+import HouseholdSetup from "./screens/HouseholdSetup/HouseholdSetup";
+import Expenses from "./screens/Expenses/Expenses";
+import Projects from "./screens/Projects/Projects";
+import SharedList from "./screens/SharedList/SharedList";
+import BottomNav from "./components/BottomNav";
+import GuestBanner from "./components/GuestBanner";
+import Spinner from "./components/Spinner";
 
-export default function App() {
-  const { t, i18n } = useTranslation();
+// ── Main app (authenticated) ──────────────────────────────────────
+function MainApp({ user }) {
+  const [tab, setTab] = useState("expenses");
+  const { isGuest } = useAuth();
+  const { household, loading, create, join } = useHousehold(user);
 
-  const toggleLang = () => {
-    const next = i18n.language === "en" ? "ta" : "en";
-    i18n.changeLanguage(next);
-    localStorage.setItem("lang", next);
-  };
+  if (!isGuest && loading) return <Spinner />;
+
+  // Guests skip household setup — data lives locally
+  if (!isGuest && !household) {
+    return (
+      <HouseholdSetup
+        onDone={async (mode, value) => {
+          if (mode === "create") await create(value);
+          else await join(value);
+        }}
+      />
+    );
+  }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-6">
-      <h1 className="text-3xl font-bold text-green-700">{t("app_name")}</h1>
-      <p className="text-gray-500 text-sm">Phase 1 — scaffold running ✓</p>
-      <button
-        onClick={toggleLang}
-        className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium"
-      >
-        {i18n.language === "en" ? "தமிழ்" : "English"}
-      </button>
+    <div className="flex flex-col h-screen bg-gray-50">
+      <GuestBanner />
+      <div className="flex-1 overflow-hidden flex flex-col">
+        {tab === "expenses" && <Expenses />}
+        {tab === "projects" && <Projects />}
+        {tab === "list"     && <SharedList />}
+      </div>
+      <BottomNav active={tab} onChange={setTab} />
     </div>
+  );
+}
+
+// ── Root — handles auth gate ──────────────────────────────────────
+function Root() {
+  const { user, loading } = useAuth();
+
+  if (loading) return <Spinner />;
+  if (!user)   return <Auth />;
+  return <MainApp user={user} />;
+}
+
+// ── App — provides context ────────────────────────────────────────
+export default function App() {
+  return (
+    <AuthProvider>
+      <Root />
+    </AuthProvider>
   );
 }

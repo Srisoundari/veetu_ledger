@@ -1,0 +1,139 @@
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useSharedList } from "../../hooks/useSharedList";
+import PageHeader from "../../components/PageHeader";
+import Card from "../../components/Card";
+import Button from "../../components/Button";
+import Input from "../../components/Input";
+import Spinner from "../../components/Spinner";
+
+export default function SharedList() {
+  const { t } = useTranslation();
+  const [item, setItem]       = useState("");
+  const [qty, setQty]         = useState("");
+  const [loading, setLoading] = useState(false);
+  const { items, loading: listLoading, error, add, markDone, remove, clearDone, refresh } =
+    useSharedList();
+
+  const pending   = items.filter((i) => !i.is_done);
+  const completed = items.filter((i) =>  i.is_done);
+
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    if (!item.trim()) return;
+    setLoading(true);
+    try {
+      await add({ item_name: item.trim(), quantity: qty.trim() || null });
+      setItem("");
+      setQty("");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full">
+      <PageHeader
+        title={t("tabs.list")}
+        action={
+          <button onClick={refresh} className="text-sm text-green-600 font-medium px-2">
+            ↻ Refresh
+          </button>
+        }
+      />
+
+      <div className="flex-1 overflow-y-auto px-4 py-4 pb-24 flex flex-col gap-3">
+        {/* Add item form */}
+        <Card>
+          <form onSubmit={handleAdd} className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <Input
+                value={item}
+                onChange={(e) => setItem(e.target.value)}
+                placeholder={t("list.item")}
+                className="flex-1"
+              />
+              <Input
+                value={qty}
+                onChange={(e) => setQty(e.target.value)}
+                placeholder={t("list.quantity")}
+                className="w-24"
+              />
+            </div>
+            <Button type="submit" full disabled={loading || !item.trim()}>
+              {loading ? "..." : t("list.add")}
+            </Button>
+          </form>
+        </Card>
+
+        {listLoading && <Spinner />}
+        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+
+        {/* Pending items */}
+        {pending.length > 0 && (
+          <div className="flex flex-col gap-2">
+            {pending.map((i) => (
+              <ListItem key={i.id} item={i} onDone={markDone} onRemove={remove} />
+            ))}
+          </div>
+        )}
+
+        {!listLoading && pending.length === 0 && (
+          <p className="text-center text-gray-400 text-sm mt-4">List is empty 🎉</p>
+        )}
+
+        {/* Completed items */}
+        {completed.length > 0 && (
+          <div className="flex flex-col gap-2 mt-2">
+            <div className="flex justify-between items-center">
+              <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Done</p>
+              <button
+                onClick={clearDone}
+                className="text-xs text-red-400 hover:text-red-500"
+              >
+                {t("list.clear_done")}
+              </button>
+            </div>
+            {completed.map((i) => (
+              <ListItem key={i.id} item={i} onRemove={remove} done />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ListItem({ item, onDone, onRemove, done = false }) {
+  return (
+    <Card className={done ? "opacity-50" : ""}>
+      <div className="flex items-center gap-3">
+        {!done && (
+          <button
+            onClick={() => onDone(item.id)}
+            className="w-6 h-6 rounded-full border-2 border-green-400 flex-shrink-0 hover:bg-green-100"
+          />
+        )}
+        {done && (
+          <div className="w-6 h-6 rounded-full bg-green-500 flex-shrink-0 flex items-center justify-center text-white text-xs">
+            ✓
+          </div>
+        )}
+        <div className="flex-1">
+          <p className={`font-medium text-gray-800 ${done ? "line-through" : ""}`}>
+            {item.item_name}
+          </p>
+          {item.quantity && (
+            <p className="text-xs text-gray-400">{item.quantity}</p>
+          )}
+        </div>
+        <button
+          onClick={() => onRemove(item.id)}
+          className="text-gray-300 hover:text-red-400 text-lg px-1"
+        >
+          ×
+        </button>
+      </div>
+    </Card>
+  );
+}
