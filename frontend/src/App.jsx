@@ -3,6 +3,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { useAuth } from "./hooks/useAuth";
 import { useHousehold } from "./hooks/useHousehold";
 import Auth from "./screens/Auth/Auth";
+import Dashboard from "./screens/Dashboard/Dashboard";
 import Expenses from "./screens/Expenses/Expenses";
 import Projects from "./screens/Projects/Projects";
 import SharedList from "./screens/SharedList/SharedList";
@@ -25,7 +26,7 @@ function MainApp({ user }) {
 
   if (!isGuest && loading) return <Spinner />;
 
-  const bottomTabs = ["expenses", "projects", "list", "household"];
+  const bottomTabs = ["dashboard", "expenses", "projects", "list", "household"];
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -35,6 +36,7 @@ function MainApp({ user }) {
       />
       <GuestBanner />
       <div className="flex-1 overflow-hidden flex flex-col">
+        {tab === "dashboard" && <Dashboard setTab={setTab} />}
         {tab === "expenses"  && <Expenses />}
         {tab === "projects"  && <Projects />}
         {tab === "list"      && <SharedList />}

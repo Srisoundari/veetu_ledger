@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useSharedList } from "../../hooks/useSharedList";
 import { useAuth } from "../../hooks/useAuth";
@@ -35,11 +35,10 @@ export default function SharedList() {
     }
   };
 
-  const handleNLPResult = async (parsed) => {
-    if (parsed.type !== "list_item") {
-      throw new Error(`Expected a list item, but got "${parsed.type}". Try rephrasing.`);
-    }
-    await add({ item_name: parsed.item_name, quantity: parsed.quantity || null });
+  const handleNLPResult = async (savedItems) => {
+    const newItems = savedItems.filter((i) => i.type === "list_item");
+    if (newItems.length === 0) throw new Error("No list items found. Try rephrasing.");
+    await refresh();
     setShowNLP(false);
   };
 
@@ -134,15 +133,32 @@ export default function SharedList() {
 }
 
 function ListItem({ item, onDone, onEdit, onRemove, done = false }) {
-  const [editing, setEditing] = useState(false);
-  const [form, setForm]       = useState({ item_name: item.item_name, quantity: item.quantity || "" });
-  const [saving, setSaving]   = useState(false);
+  const [editing, setEditing]   = useState(false);
+  const [form, setForm]         = useState({ item_name: item.item_name || "", quantity: item.quantity || "" });
+  const [saving, setSaving]     = useState(false);
+  const [saveError, setSaveError] = useState(null);
+
+  // Re-sync form whenever the item data changes (e.g. after a refresh brings new values)
+  useEffect(() => {
+    if (!editing) {
+      setForm({ item_name: item.item_name || "", quantity: item.quantity || "" });
+    }
+  }, [item.item_name, item.quantity, editing]);
+
+  const startEdit = () => {
+    setForm({ item_name: item.item_name || "", quantity: item.quantity || "" });
+    setSaveError(null);
+    setEditing(true);
+  };
 
   const save = async () => {
     setSaving(true);
+    setSaveError(null);
     try {
       await onEdit(item.id, { item_name: form.item_name, quantity: form.quantity || null });
       setEditing(false);
+    } catch (e) {
+      setSaveError(e.message);
     } finally {
       setSaving(false);
     }
@@ -158,6 +174,7 @@ function ListItem({ item, onDone, onEdit, onRemove, done = false }) {
             <Input value={form.quantity} onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value }))}
               placeholder="Qty" className="w-20" />
           </div>
+          {saveError && <p className="text-xs text-red-500">{saveError}</p>}
           <div className="flex gap-2">
             <Button onClick={save} disabled={saving || !form.item_name.trim()} full>
               {saving ? "Saving..." : "Save"}
@@ -184,7 +201,7 @@ function ListItem({ item, onDone, onEdit, onRemove, done = false }) {
           {item.quantity && <p className="text-xs text-gray-400">{item.quantity}</p>}
         </div>
         {!done && (
-          <button onClick={() => setEditing(true)}
+          <button onClick={startEdit}
             className="text-xs text-green-600 font-medium px-1 hover:text-green-700">
             Edit
           </button>

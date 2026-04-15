@@ -19,7 +19,8 @@ export default function ProjectDetail({ project, onBack }) {
   const [editingId, setEditingId]   = useState(null);
   const [editForm, setEditForm]     = useState({});
   const [editSaving, setEditSaving] = useState(false);
-  const { entries, summary, loading, error, addEntry, updateEntry, removeEntry } =
+  const [editError, setEditError]   = useState(null);
+  const { entries, summary, loading, error, addEntry, updateEntry, removeEntry, refresh } =
     useProjectEntries(project.id);
 
   const handleSave = async (data) => {
@@ -27,22 +28,16 @@ export default function ProjectDetail({ project, onBack }) {
     setShowForm(false);
   };
 
-  const handleNLPResult = async (parsed) => {
-    if (parsed.type !== "project_entry") {
-      throw new Error(`Expected a project entry, but got "${parsed.type}". Try rephrasing.`);
-    }
-    await addEntry({
-      entry_date:       parsed.date,
-      day_number:       entries.length + 1,
-      work_description: parsed.work_description,
-      total_amount:     parsed.total_amount,
-      paid_amount:      parsed.paid_amount,
-    });
+  const handleNLPResult = async (savedItems) => {
+    const newEntries = savedItems.filter((i) => i.type === "project_entry");
+    if (newEntries.length === 0) throw new Error("No project entries found. Try rephrasing.");
+    await refresh();
     setShowNLP(false);
   };
 
   const startEditEntry = (entry) => {
     setEditingId(entry.id);
+    setEditError(null);
     setEditForm({
       entry_date:       entry.entry_date,
       day_number:       entry.day_number || "",
@@ -54,6 +49,7 @@ export default function ProjectDetail({ project, onBack }) {
 
   const saveEditEntry = async (id) => {
     setEditSaving(true);
+    setEditError(null);
     try {
       await updateEntry(id, {
         ...editForm,
@@ -62,6 +58,8 @@ export default function ProjectDetail({ project, onBack }) {
         paid_amount:  parseFloat(editForm.paid_amount),
       });
       setEditingId(null);
+    } catch (e) {
+      setEditError(e.message);
     } finally {
       setEditSaving(false);
     }
@@ -119,7 +117,7 @@ export default function ProjectDetail({ project, onBack }) {
             </button>
             {showNLP && (
               <div className="mt-2">
-                <NLPInput onResult={handleNLPResult} />
+                <NLPInput onResult={handleNLPResult} projectId={project.id} />
               </div>
             )}
           </div>
@@ -150,6 +148,7 @@ export default function ProjectDetail({ project, onBack }) {
                   <Input label={t("project.paid")} type="number" value={editForm.paid_amount}
                     onChange={(e) => setEditForm((f) => ({ ...f, paid_amount: e.target.value }))} className="flex-1" />
                 </div>
+                {editError && <p className="text-xs text-red-500">{editError}</p>}
                 <div className="flex gap-2">
                   <Button onClick={() => saveEditEntry(entry.id)} disabled={editSaving} full>
                     {editSaving ? "Saving..." : "Save"}

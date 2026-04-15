@@ -9,6 +9,7 @@
 # """
 
 from datetime import date
+import json
 import os
 
 from dotenv import load_dotenv
@@ -40,7 +41,7 @@ def get_parser():
 
         def parse(system_prompt: str, user_message: str) -> str:
             response = _client.models.generate_content(
-                model="gemini-3-flash-preview", contents=f"{system_prompt}\n\n{user_message}"
+                model=os.environ["GEMINI_MODEL"], contents=f"{system_prompt}\n\n{user_message}"
             )
             return response.text.strip()
 

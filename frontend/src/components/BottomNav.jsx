@@ -1,10 +1,11 @@
 import { useTranslation } from "react-i18next";
 
 const tabs = [
-  { key: "expenses",  icon: "₹",  labelKey: "tabs.expenses" },
-  { key: "projects",  icon: "🏗", labelKey: "tabs.projects" },
-  { key: "list",      icon: "🛒", labelKey: "tabs.list"     },
-  { key: "household", icon: "🏠", label: "Household"        },
+  { key: "dashboard", icon: "📊", labelKey: "tabs.dashboard" },
+  { key: "expenses",  icon: "₹",  labelKey: "tabs.expenses"  },
+  { key: "projects",  icon: "🏗", labelKey: "tabs.projects"  },
+  { key: "list",      icon: "🛒", labelKey: "tabs.list"      },
+  { key: "household", icon: "🏠", label: "Household"         },
 ];
 
 export default function BottomNav({ active, onChange }) {
