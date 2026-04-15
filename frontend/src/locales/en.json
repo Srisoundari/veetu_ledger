@@ -9,6 +9,7 @@
     "back": "Back"
   },
   "tabs": {
+    "dashboard": "Home",
     "expenses": "Expenses",
     "projects": "Projects",
     "list": "Shopping List"

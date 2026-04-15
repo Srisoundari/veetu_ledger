@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from datetime import date
+import datetime
 
 
 # ---------- Profile ----------
@@ -20,14 +20,14 @@ class HouseholdRename(BaseModel):
 
 # ---------- Expense ----------
 class ExpenseCreate(BaseModel):
-    date: date
+    date: datetime.date
     amount: float
     note: Optional[str] = None
     category: Optional[str] = None
 
 
 class ExpenseUpdate(BaseModel):
-    date: Optional[date] = None
+    date: Optional[datetime.date] = None
     amount: Optional[float] = None
     note: Optional[str] = None
     category: Optional[str] = None
@@ -51,7 +51,7 @@ class ProjectUpdate(BaseModel):
 
 
 class ProjectEntryCreate(BaseModel):
-    entry_date: date
+    entry_date: datetime.date
     day_number: Optional[int] = None
     work_description: Optional[str] = None
     total_amount: float
@@ -59,7 +59,7 @@ class ProjectEntryCreate(BaseModel):
 
 
 class ProjectEntryUpdate(BaseModel):
-    entry_date: Optional[date] = None
+    entry_date: Optional[datetime.date] = None
     day_number: Optional[int] = None
     work_description: Optional[str] = None
     total_amount: Optional[float] = None

@@ -22,6 +22,32 @@ async def list_projects(user=Depends(get_current_user)):
     return supabase.table("projects").select("*").eq("household_id", household_id).order("created_at", desc=True).execute().data
 
 
+@router.get("/balance")
+async def total_balance(user=Depends(get_current_user)):
+    """Return total outstanding balance across all active projects for the household."""
+    household_id = _get_household_id(user.id)
+    active = (
+        supabase.table("projects")
+        .select("id")
+        .eq("household_id", household_id)
+        .neq("status", "completed")
+        .execute()
+        .data
+    )
+    if not active:
+        return {"total_balance": 0, "active_projects": 0}
+    project_ids = [p["id"] for p in active]
+    entries = (
+        supabase.table("project_entries")
+        .select("balance")
+        .in_("project_id", project_ids)
+        .execute()
+        .data
+    )
+    total = sum(e.get("balance", 0) or 0 for e in entries)
+    return {"total_balance": total, "active_projects": len(active)}
+
+
 @router.post("/")
 async def create_project(body: ProjectCreate, user=Depends(get_current_user)):
     household_id = _get_household_id(user.id)
