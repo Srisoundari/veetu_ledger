@@ -45,7 +45,7 @@ async def create_expense(body: ExpenseCreate, user=Depends(get_current_user)):
                 "date": str(body.date),
                 "amount": body.amount,
                 "note": body.note,
-                "category": body.category,
+                "category": body.category.strip().lower() if body.category else None,
             }
         )
         .execute()
@@ -55,15 +55,18 @@ async def create_expense(body: ExpenseCreate, user=Depends(get_current_user)):
 
 @router.patch("/{expense_id}")
 async def update_expense(expense_id: str, body: ExpenseUpdate, user=Depends(get_current_user)):
+    household_id = _get_household_id(user.id)
     data = {
         k: str(v) if hasattr(v, "isoformat") else v
         for k, v in body.model_dump(exclude_none=True).items()
     }
+    if "category" in data and data["category"]:
+        data["category"] = data["category"].strip().lower()
     result = (
         supabase.table("expenses")
         .update(data)
         .eq("id", expense_id)
-        .eq("added_by", user.id)
+        .eq("household_id", household_id)
         .execute()
     )
     return result.data[0]
@@ -71,5 +74,6 @@ async def update_expense(expense_id: str, body: ExpenseUpdate, user=Depends(get_
 
 @router.delete("/{expense_id}")
 async def delete_expense(expense_id: str, user=Depends(get_current_user)):
-    supabase.table("expenses").delete().eq("id", expense_id).eq("added_by", user.id).execute()
+    household_id = _get_household_id(user.id)
+    supabase.table("expenses").delete().eq("id", expense_id).eq("household_id", household_id).execute()
     return {"deleted": expense_id}

@@ -15,10 +15,11 @@ export default function Projects() {
   const [name, setName]             = useState("");
   const [desc, setDesc]             = useState("");
   const [loading, setLoading]       = useState(false);
-  const [editingId, setEditingId]   = useState(null);
-  const [editForm, setEditForm]     = useState({});
-  const [editSaving, setEditSaving] = useState(false);
-  const [editError, setEditError]   = useState(null);
+  const [editingId, setEditingId]     = useState(null);
+  const [editForm, setEditForm]       = useState({});
+  const [editSaving, setEditSaving]   = useState(false);
+  const [editError, setEditError]     = useState(null);
+  const [showArchived, setShowArchived] = useState(false);
   const { projects, loading: listLoading, error, create, update, complete, remove } = useProjects();
 
   if (selected) {
@@ -82,7 +83,7 @@ export default function Projects() {
           <p className="text-center text-gray-400 text-sm mt-6">No projects yet</p>
         )}
 
-        {projects.map((p) => (
+        {projects.filter((p) => p.status !== "completed").map((p) => (
           <Card key={p.id}>
             {editingId === p.id ? (
               <div className="flex flex-col gap-2">
@@ -133,6 +134,62 @@ export default function Projects() {
             )}
           </Card>
         ))}
+
+        {/* Completed projects toggle */}
+        {!listLoading && projects.some((p) => p.status === "completed") && (
+          <div className="mt-1">
+            <button
+              onClick={() => setShowArchived((v) => !v)}
+              className="text-xs text-gray-400 font-medium w-full text-center py-1"
+            >
+              {showArchived ? "▲ Hide" : "▼ Show"} completed ({projects.filter((p) => p.status === "completed").length})
+            </button>
+
+            {showArchived && projects.filter((p) => p.status === "completed").map((p) => (
+              <Card key={p.id} className="opacity-60 mt-2">
+                {editingId === p.id ? (
+                  <div className="flex flex-col gap-2">
+                    <Input label="Name" value={editForm.name}
+                      onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))} autoFocus />
+                    <Input label="Description" value={editForm.description || ""}
+                      onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} />
+                    {editError && <p className="text-xs text-red-500">{editError}</p>}
+                    <div className="flex gap-2">
+                      <Button onClick={() => saveEdit(p.id)} disabled={editSaving || !editForm.name?.trim()} full>
+                        {editSaving ? "Saving..." : "Save"}
+                      </Button>
+                      <Button variant="secondary" full onClick={() => setEditingId(null)}>Cancel</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex justify-between items-center cursor-pointer" onClick={() => setSelected(p)}>
+                      <div className="flex-1 min-w-0 pr-2">
+                        <p className="font-semibold text-gray-600 truncate line-through">{p.name}</p>
+                        {p.description && (
+                          <p className="text-sm text-gray-400 mt-0.5 truncate">{p.description}</p>
+                        )}
+                      </div>
+                      <span className="text-xs px-2 py-1 rounded-full font-medium shrink-0 bg-gray-100 text-gray-400">
+                        completed
+                      </span>
+                    </div>
+                    <div className="flex gap-3 mt-3 pt-2.5 border-t border-gray-50">
+                      <button onClick={(e) => { e.stopPropagation(); setEditingId(p.id); setEditError(null); setEditForm({ name: p.name, description: p.description || "" }); }}
+                        className="text-xs text-blue-500 font-medium hover:text-blue-600">
+                        Edit
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); remove(p.id); }}
+                        className="text-xs text-red-400 font-medium hover:text-red-500 ml-auto">
+                        Delete
+                      </button>
+                    </div>
+                  </>
+                )}
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
 
       <button

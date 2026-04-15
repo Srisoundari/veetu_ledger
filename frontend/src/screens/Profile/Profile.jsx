@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { householdsApi } from "../../api/households.api";
 import PageHeader from "../../components/PageHeader";
@@ -13,6 +13,12 @@ export default function Profile({ onBack }) {
   const [saved, setSaved]   = useState(false);
   const [error, setError]   = useState(null);
 
+  useEffect(() => {
+    householdsApi.me()
+      .then((data) => { if (data?.name) setName(data.name); })
+      .catch(() => {});
+  }, []);
+
   const saveProfile = async (e) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -22,7 +28,6 @@ export default function Profile({ onBack }) {
     try {
       await householdsApi.updateProfile(name.trim(), "en");
       setSaved(true);
-      setName("");
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
       setError(e.message);

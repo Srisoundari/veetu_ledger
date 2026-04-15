@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useSharedList } from "../../hooks/useSharedList";
 import { useAuth } from "../../hooks/useAuth";
+import { householdsApi } from "../../api/households.api";
 import PageHeader from "../../components/PageHeader";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
@@ -11,11 +12,21 @@ import NLPInput from "../../components/NLPInput";
 
 export default function SharedList() {
   const { t } = useTranslation();
-  const { isGuest } = useAuth();
+  const { user, isGuest } = useAuth();
   const [item, setItem]       = useState("");
   const [qty, setQty]         = useState("");
   const [loading, setLoading] = useState(false);
-  const [showNLP, setShowNLP] = useState(false);
+  const [showNLP, setShowNLP]         = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [members, setMembers] = useState([]);
+
+  useEffect(() => {
+    if (!isGuest) {
+      householdsApi.members()
+        .then(setMembers)
+        .catch(() => {});
+    }
+  }, [isGuest]);
   const { items, loading: listLoading, error, add, update, markDone, remove, clearDone, refresh } =
     useSharedList();
 
@@ -115,15 +126,34 @@ export default function SharedList() {
           <div className="flex flex-col gap-2 mt-2">
             <div className="flex justify-between items-center">
               <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Done</p>
-              <button
-                onClick={clearDone}
-                className="text-xs text-red-400 hover:text-red-500"
-              >
-                {t("list.clear_done")}
-              </button>
+              {confirmClear ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">Clear {completed.length} items?</span>
+                  <button
+                    onClick={() => { clearDone(); setConfirmClear(false); }}
+                    className="text-xs text-red-500 font-semibold"
+                  >
+                    Yes
+                  </button>
+                  <button
+                    onClick={() => setConfirmClear(false)}
+                    className="text-xs text-gray-400"
+                  >
+                    No
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmClear(true)}
+                  className="text-xs text-red-400 hover:text-red-500"
+                >
+                  {t("list.clear_done")}
+                </button>
+              )}
             </div>
             {completed.map((i) => (
-              <ListItem key={i.id} item={i} onRemove={remove} done />
+              <ListItem key={i.id} item={i} onRemove={remove} done
+                members={members} currentUserId={user?.id} />
             ))}
           </div>
         )}
@@ -132,7 +162,7 @@ export default function SharedList() {
   );
 }
 
-function ListItem({ item, onDone, onEdit, onRemove, done = false }) {
+function ListItem({ item, onDone, onEdit, onRemove, done = false, members = [], currentUserId }) {
   const [editing, setEditing]   = useState(false);
   const [form, setForm]         = useState({ item_name: item.item_name || "", quantity: item.quantity || "" });
   const [saving, setSaving]     = useState(false);
@@ -199,6 +229,13 @@ function ListItem({ item, onDone, onEdit, onRemove, done = false }) {
         <div className="flex-1">
           <p className={`font-medium text-gray-800 ${done ? "line-through" : ""}`}>{item.item_name}</p>
           {item.quantity && <p className="text-xs text-gray-400">{item.quantity}</p>}
+          {done && item.done_by && (
+            <p className="text-xs text-gray-400 mt-0.5">
+              by {item.done_by === currentUserId
+                ? "you"
+                : members.find((m) => m.id === item.done_by)?.name || "member"}
+            </p>
+          )}
         </div>
         {!done && (
           <button onClick={startEdit}

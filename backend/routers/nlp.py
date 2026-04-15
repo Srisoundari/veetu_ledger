@@ -77,7 +77,7 @@ async def save_parsed(body: SaveRequest, user=Depends(get_current_user)):
                         "date": item.get("date"),
                         "amount": item.get("amount"),
                         "note": item.get("note"),
-                        "category": item.get("category"),
+                        "category": item.get("category", "").strip().lower() or None,
                     }
                 )
                 .execute()
