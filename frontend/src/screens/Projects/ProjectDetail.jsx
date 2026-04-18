@@ -1,32 +1,23 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useProjectEntries } from "../../hooks/useProjects";
-import { useAuth } from "../../hooks/useAuth";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 import Spinner from "../../components/Spinner";
-import NLPInput from "../../components/NLPInput";
 import ProjectEntryForm from "./ProjectEntryForm";
 import { formatCurrency, formatDate } from "../../utils/format";
 
 export default function ProjectDetail({ project, onBack }) {
   const { t } = useTranslation();
-  const { isGuest } = useAuth();
   const [showForm, setShowForm]     = useState(false);
   const [editingId, setEditingId]   = useState(null);
   const [editForm, setEditForm]     = useState({});
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError]   = useState(null);
-  const { entries, summary, loading, error, addEntry, updateEntry, removeEntry, refresh } =
+  const { entries, summary, loading, error, addEntry, updateEntry, removeEntry } =
     useProjectEntries(project.id);
 
   const handleSave = async (data) => { await addEntry(data); setShowForm(false); };
-
-  const handleNLPResult = async (savedItems) => {
-    if (!savedItems.some((i) => i.type === "project_entry"))
-      throw new Error("No project entries found. Try rephrasing.");
-    await refresh();
-  };
 
   const startEditEntry = (entry) => {
     setEditingId(entry.id);
@@ -131,12 +122,6 @@ export default function ProjectDetail({ project, onBack }) {
           </div>
         )}
 
-        {/* NLP entry — always visible, auto-linked to this project */}
-        {!isGuest && (
-          <div className="mt-4">
-            <NLPInput onResult={handleNLPResult} projectId={project.id} />
-          </div>
-        )}
       </div>
 
       {/* ── Entries ────────────────────────────────────────────────────────── */}

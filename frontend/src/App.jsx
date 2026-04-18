@@ -4,8 +4,7 @@ import { useAuth } from "./hooks/useAuth";
 import { useHousehold } from "./hooks/useHousehold";
 import Auth from "./screens/Auth/Auth";
 import Dashboard from "./screens/Dashboard/Dashboard";
-import Expenses from "./screens/Expenses/Expenses";
-import Projects from "./screens/Projects/Projects";
+import Finance from "./screens/Finance/Finance";
 import SharedList from "./screens/SharedList/SharedList";
 import Household from "./screens/Household/Household";
 import Profile from "./screens/Profile/Profile";
@@ -22,19 +21,19 @@ function MainApp({ user }) {
   const { household, loading, create, join, rename, newInvite, leave } = useHousehold(user);
 
   // Default to Household tab until they've joined/created one
-  const [tab, setTab] = useState("expenses");
+  const [tab, setTab] = useState("finance");
   useEffect(() => {
     if (!isGuest && !loading && !household) setTab("household");
   }, [isGuest, loading, household]);
 
   if (!isGuest && loading) return <Spinner />;
 
-  const bottomTabs = ["dashboard", "expenses", "projects", "list", "household"];
+  const bottomTabs = ["dashboard", "finance", "list", "household"];
 
   return (
     <div className="flex flex-col h-screen bg-slate-50 dark:bg-slate-950 transition-colors">
       <TopBar
-        onHome={() => setTab("expenses")}
+        onHome={() => setTab("finance")}
         onProfile={() => setTab("profile")}
         dark={dark}
         onToggleTheme={toggle}
@@ -42,8 +41,7 @@ function MainApp({ user }) {
       <GuestBanner />
       <div className="flex-1 overflow-hidden flex flex-col">
         {tab === "dashboard" && <Dashboard setTab={setTab} />}
-        {tab === "expenses"  && <Expenses />}
-        {tab === "projects"  && <Projects />}
+        {tab === "finance"   && <Finance />}
         {tab === "list"      && <SharedList />}
         {tab === "household" && (
           <Household
@@ -56,16 +54,16 @@ function MainApp({ user }) {
           />
         )}
         {tab === "profile" && (
-          <Profile onBack={() => setTab("expenses")} />
+          <Profile onBack={() => setTab("finance")} />
         )}
       </div>
       {bottomTabs.includes(tab) && (
         <BottomNav active={tab} onChange={setTab} />
       )}
-      {!isGuest && ["expenses", "projects", "list"].includes(tab) && (
+      {!isGuest && ["finance", "list"].includes(tab) && (
         <FloatingAssistant
           onSaved={(type) => {
-            if (type === "expense")        setTab("expenses");
+            if (type === "expense")        setTab("finance");
             else if (type === "list_item") setTab("list");
           }}
         />

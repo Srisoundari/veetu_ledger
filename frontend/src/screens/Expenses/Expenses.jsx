@@ -30,7 +30,7 @@ function groupLabel(dateStr) {
   return formatDate(dateStr);
 }
 
-export default function Expenses() {
+export default function Expenses({ subTabBar }) {
   const { t } = useTranslation();
   const [month, setMonth]           = useState(currentMonth());
   const [showForm, setShowForm]     = useState(false);
@@ -85,6 +85,8 @@ export default function Expenses() {
 
       {/* ── Teal header (matches Projects) ─────────────────────────────────── */}
       <div className="bg-gradient-to-br from-teal-600 to-cyan-700 px-5 pt-12 pb-5">
+
+        {subTabBar}
 
         {/* Title + info + month picker */}
         <div className="flex items-center justify-between">

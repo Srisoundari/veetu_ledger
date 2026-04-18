@@ -9,7 +9,7 @@ import ProjectDetail from "./ProjectDetail";
 import { formatCurrency } from "../../utils/format";
 import PageInfo from "../../components/PageInfo";
 
-export default function Projects() {
+export default function Projects({ subTabBar }) {
   const { t } = useTranslation();
   const [selected, setSelected]         = useState(null);
   const [showForm, setShowForm]         = useState(false);
@@ -52,6 +52,8 @@ export default function Projects() {
 
       {/* ── Teal header ────────────────────────────────────────────────────── */}
       <div className="bg-gradient-to-br from-teal-600 to-cyan-700 px-5 pt-12 pb-5">
+
+        {subTabBar}
 
         {/* Title + info */}
         <div className="flex items-center gap-2">

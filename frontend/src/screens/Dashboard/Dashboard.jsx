@@ -178,7 +178,7 @@ export default function Dashboard({ setTab }) {
         {/* Stat chips */}
         <div className="flex gap-3 mt-4">
           <button
-            onClick={() => setTab("projects")}
+            onClick={() => setTab("finance")}
             className="bg-white/10 rounded-xl px-3 py-2 flex-1 text-center active:bg-white/20"
           >
             <p className="text-slate-400 text-xs">To pay</p>
@@ -196,7 +196,7 @@ export default function Dashboard({ setTab }) {
             </p>
           </button>
           <button
-            onClick={() => setTab("projects")}
+            onClick={() => setTab("finance")}
             className="bg-white/10 rounded-xl px-3 py-2 flex-1 text-center active:bg-white/20"
           >
             <p className="text-slate-400 text-xs">Projects</p>
@@ -359,7 +359,7 @@ export default function Dashboard({ setTab }) {
                   ))
                 )}
                 <button
-                  onClick={() => setTab("expenses")}
+                  onClick={() => setTab("finance")}
                   className="w-full text-center text-amber-600 text-xs font-semibold py-3 border-t border-gray-50 active:bg-gray-50 dark:active:bg-slate-700"
                 >
                   View all expenses →
