@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useProjects } from "../../hooks/useProjects";
-import PageHeader from "../../components/PageHeader";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 import Spinner from "../../components/Spinner";
@@ -9,7 +8,7 @@ import ProjectDetail from "./ProjectDetail";
 import { formatCurrency } from "../../utils/format";
 import PageInfo from "../../components/PageInfo";
 
-export default function Projects({ subTabBar }) {
+export default function Projects() {
   const { t } = useTranslation();
   const [selected, setSelected]         = useState(null);
   const [showForm, setShowForm]         = useState(false);
@@ -53,12 +52,10 @@ export default function Projects({ subTabBar }) {
       {/* ── Teal header ────────────────────────────────────────────────────── */}
       <div className="bg-gradient-to-br from-teal-600 to-cyan-700 px-5 pt-12 pb-5">
 
-        {subTabBar}
-
         {/* Title + info */}
         <div className="flex items-center gap-2">
-          <p className="text-white text-xl font-bold">Projects</p>
-          <PageInfo dark text="Track construction, renovation, or any ongoing work. Each project has daily entries recording work done, amounts billed, and payments received. The outstanding balance updates automatically." />
+          <p className="text-white text-xl font-bold">Groups</p>
+          <PageInfo dark text="Organise expenses into groups — home renovation, construction, events, and more. Paste a WhatsApp expense report inside a group to bulk-add items. Outstanding balances update automatically." />
         </div>
 
         {/* Stat chips */}
@@ -84,9 +81,9 @@ export default function Projects({ subTabBar }) {
         {/* Create form */}
         {showForm && (
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-4">
-            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">New Project</p>
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">New Group</p>
             <form onSubmit={handleCreate} className="flex flex-col gap-3">
-              <Input label={t("project.name")} value={name}
+              <Input label="Group name" value={name}
                 onChange={(e) => setName(e.target.value)} required />
               <Input label="Description (optional)" value={desc}
                 onChange={(e) => setDesc(e.target.value)} />
@@ -106,7 +103,7 @@ export default function Projects({ subTabBar }) {
         {error   && <p className="text-sm text-red-500 text-center">{error}</p>}
 
         {!loading && projects.length === 0 && !showForm && (
-          <p className="text-center text-slate-400 dark:text-slate-500 text-sm mt-10">No projects yet</p>
+          <p className="text-center text-slate-400 dark:text-slate-500 text-sm mt-10">No groups yet</p>
         )}
 
         {/* Active */}
@@ -160,13 +157,13 @@ export default function Projects({ subTabBar }) {
           fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
           <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
         </svg>
-        New project
+        New group
       </button>
     </div>
   );
 }
 
-// ── ProjectCard ──────────────────────────────────────────────────────────────
+// ── GroupCard ────────────────────────────────────────────────────────────────
 
 function ProjectCard({
   project: p, editingId, editForm, editError, editSaving,
@@ -196,8 +193,7 @@ function ProjectCard({
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden">
-      {/* Teal top accent bar */}
-      <div className={`h-1 ${isComplete ? "bg-slate-200" : "bg-teal-500"}`} />
+      <div className={`h-1 ${isComplete ? "bg-slate-200 dark:bg-slate-600" : "bg-teal-500"}`} />
 
       <div className="p-4">
         {/* Name row */}
@@ -220,19 +216,13 @@ function ProjectCard({
         {/* Financial summary */}
         {s.days > 0 && (
           <div className="mt-4">
-            {/* Progress bar */}
             <div className="flex justify-between text-xs text-slate-400 dark:text-slate-500 mb-1.5">
-              <span>{s.days} {s.days === 1 ? "day" : "days"} worked</span>
+              <span>{s.days} {s.days === 1 ? "item" : "items"}</span>
               <span className="font-medium text-teal-600">{Math.round(paidPct)}% paid</span>
             </div>
             <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full bg-teal-500 transition-all"
-                style={{ width: `${paidPct}%` }}
-              />
+              <div className="h-full rounded-full bg-teal-500 transition-all" style={{ width: `${paidPct}%` }} />
             </div>
-
-            {/* Amounts row */}
             <div className="flex gap-4 mt-3">
               <div>
                 <p className="text-xs text-slate-400 dark:text-slate-500">Total</p>
@@ -253,7 +243,7 @@ function ProjectCard({
         )}
 
         {/* Action row */}
-        <div className="flex items-center gap-4 mt-4 pt-3 border-t border-slate-50">
+        <div className="flex items-center gap-4 mt-4 pt-3 border-t border-slate-50 dark:border-slate-700/50">
           {!isComplete && onComplete && (
             <button
               onClick={(e) => { e.stopPropagation(); onComplete(p.id); }}
