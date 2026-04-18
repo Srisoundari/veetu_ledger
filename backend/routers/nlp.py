@@ -104,8 +104,8 @@ async def save_parsed(body: SaveRequest, user=Depends(get_current_user)):
                 raise HTTPException(
                     status_code=400, detail="project_id required for project entries"
                 )
-            total = item.get("total_amount", 0) or 0
-            paid = item.get("paid_amount", 0) or 0
+            paid  = item.get("paid_amount", 0) or 0
+            total = item.get("total_amount") or paid   # default total = paid if omitted
             result = (
                 supabase.table("project_entries")
                 .insert(

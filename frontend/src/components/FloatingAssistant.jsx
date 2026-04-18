@@ -116,7 +116,7 @@ export default function FloatingAssistant({ onSaved }) {
 
                 {/* Parsed preview cards */}
                 {parsed && (
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-0.5">
                     {parsed.map((item, i) => (
                       <div key={i} className="bg-slate-50 rounded-xl p-3 border border-slate-100 dark:bg-slate-700 dark:border-slate-600">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">

@@ -13,7 +13,6 @@ export default function ProjectDetail({ project, onBack }) {
   const { t } = useTranslation();
   const { isGuest } = useAuth();
   const [showForm, setShowForm]     = useState(false);
-  const [showNLP, setShowNLP]       = useState(false);
   const [editingId, setEditingId]   = useState(null);
   const [editForm, setEditForm]     = useState({});
   const [editSaving, setEditSaving] = useState(false);
@@ -27,7 +26,6 @@ export default function ProjectDetail({ project, onBack }) {
     if (!savedItems.some((i) => i.type === "project_entry"))
       throw new Error("No project entries found. Try rephrasing.");
     await refresh();
-    setShowNLP(false);
   };
 
   const startEditEntry = (entry) => {
@@ -133,17 +131,9 @@ export default function ProjectDetail({ project, onBack }) {
           </div>
         )}
 
-        {/* NLP strip */}
+        {/* NLP entry — always visible, auto-linked to this project */}
         {!isGuest && (
-          <button
-            onClick={() => setShowNLP((v) => !v)}
-            className="mt-4 w-full bg-white/15 rounded-xl px-3 py-2 text-left text-teal-100 text-sm"
-          >
-            💬 {showNLP ? "Hide voice entry" : t("nlp.placeholder")}
-          </button>
-        )}
-        {showNLP && !isGuest && (
-          <div className="mt-2">
+          <div className="mt-4">
             <NLPInput onResult={handleNLPResult} projectId={project.id} />
           </div>
         )}
