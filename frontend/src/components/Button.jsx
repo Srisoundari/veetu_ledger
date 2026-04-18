@@ -1,8 +1,8 @@
 const variants = {
-  primary:   "bg-green-600 text-white hover:bg-green-700 active:bg-green-800",
-  secondary: "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300",
+  primary:   "bg-slate-900 text-white hover:bg-slate-800 active:bg-slate-700",
+  secondary: "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600 dark:active:bg-slate-500",
   danger:    "bg-red-500  text-white hover:bg-red-600   active:bg-red-700",
-  ghost:     "text-green-600 hover:bg-green-50",
+  ghost:     "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800",
 };
 
 export default function Button({

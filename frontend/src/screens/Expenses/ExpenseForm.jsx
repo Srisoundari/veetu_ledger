@@ -38,11 +38,11 @@ export default function ExpenseForm({ onSave, onCancel, initial = {} }) {
         onChange={set("date")} required />
 
       <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-gray-600">{t("expense.category")}</label>
+        <label className="text-sm font-medium text-gray-600 dark:text-slate-400">{t("expense.category")}</label>
         <select
           value={form.category}
           onChange={set("category")}
-          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
         >
           {CATEGORIES.map((c) => (
             <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>

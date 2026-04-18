@@ -66,15 +66,15 @@ export default function NLPInput({ onResult, projectId = null, fillOnly = false 
       {error && <p className="text-sm text-red-500">{error}</p>}
 
       {parsed && (
-        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 flex flex-col gap-3">
-          <p className="text-sm font-medium text-green-800">
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col gap-3 dark:bg-slate-800 dark:border-slate-700">
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
             {parsed.length === 1 ? t("nlp.confirm") : `${parsed.length} items to save`}
           </p>
 
           <div className="flex flex-col gap-2">
             {parsed.map((item, i) => (
-              <div key={i} className="bg-white rounded-xl p-3 border border-green-100">
-                <span className="text-xs font-medium text-green-600 uppercase tracking-wide mb-1.5 block">
+              <div key={i} className="bg-white rounded-xl p-3 border border-slate-100 dark:bg-slate-700 dark:border-slate-600">
+                <span className="text-xs font-medium text-teal-600 uppercase tracking-wide mb-1.5 block dark:text-teal-400">
                   {item.type?.replace("_", " ")}
                 </span>
                 <ParsedPreview parsed={item} />
@@ -108,8 +108,8 @@ function ParsedPreview({ parsed }) {
           const val = isAmount ? formatCurrency(v) : k === "date" ? formatDate(v) : String(v ?? "");
           return (
             <div key={k} className="flex justify-between text-sm">
-              <span className="text-gray-500 capitalize">{k.replace(/_/g, " ")}</span>
-              <span className="font-medium text-gray-800">{val}</span>
+              <span className="text-gray-500 capitalize dark:text-slate-400">{k.replace(/_/g, " ")}</span>
+              <span className="font-medium text-gray-800 dark:text-slate-200">{val}</span>
             </div>
           );
         })}
