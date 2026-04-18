@@ -15,6 +15,7 @@ export default function Projects() {
   const [name, setName]                 = useState("");
   const [desc, setDesc]                 = useState("");
   const [creating, setCreating]         = useState(false);
+  const [createError, setCreateError]   = useState(null);
   const [editingId, setEditingId]       = useState(null);
   const [editForm, setEditForm]         = useState({});
   const [editSaving, setEditSaving]     = useState(false);
@@ -35,8 +36,9 @@ export default function Projects() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    setCreating(true);
+    setCreating(true); setCreateError(null);
     try { await create({ name, description: desc }); setName(""); setDesc(""); setShowForm(false); }
+    catch (e) { setCreateError(e.message); }
     finally { setCreating(false); }
   };
 
@@ -87,11 +89,12 @@ export default function Projects() {
                 onChange={(e) => setName(e.target.value)} required />
               <Input label="Description (optional)" value={desc}
                 onChange={(e) => setDesc(e.target.value)} />
+              {createError && <p className="text-xs text-red-500">{createError}</p>}
               <div className="flex gap-2">
                 <Button type="submit" full disabled={creating}>
                   {creating ? "Creating…" : "Create"}
                 </Button>
-                <Button variant="secondary" full onClick={() => setShowForm(false)}>
+                <Button variant="secondary" full onClick={() => { setShowForm(false); setCreateError(null); }}>
                   {t("common.cancel")}
                 </Button>
               </div>
