@@ -33,16 +33,16 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center px-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col justify-center px-6">
       {/* Logo */}
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold text-green-600">VeetuLedger</h1>
+        <h1 className="text-4xl font-bold text-slate-900 dark:text-white">VeetuLedger</h1>
       </div>
 
       {checkEmail && (
-        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-center mb-4">
-          <p className="text-green-800 font-medium">Check your email</p>
-          <p className="text-green-600 text-sm mt-1">We sent a confirmation link to <strong>{email}</strong></p>
+        <div className="bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 rounded-2xl p-4 text-center mb-4">
+          <p className="text-teal-800 dark:text-teal-200 font-medium">Check your email</p>
+          <p className="text-slate-900 dark:text-slate-300 text-sm mt-1">We sent a confirmation link to <strong>{email}</strong></p>
         </div>
       )}
 
@@ -71,7 +71,7 @@ export default function Auth() {
 
       <button
         onClick={() => { setIsSignUp((v) => !v); setError(null); }}
-        className="mt-4 text-sm text-green-600 text-center"
+        className="mt-4 text-sm text-slate-900 dark:text-slate-300 text-center"
       >
         {isSignUp ? t("auth.have_account") : t("auth.no_account")}
       </button>
@@ -79,14 +79,14 @@ export default function Auth() {
       {/* Guest access */}
       <div className="mt-6 flex flex-col items-center gap-2">
         <div className="flex items-center gap-3 w-full">
-          <div className="flex-1 h-px bg-gray-200" />
-          <span className="text-xs text-gray-400">or</span>
-          <div className="flex-1 h-px bg-gray-200" />
+          <div className="flex-1 h-px bg-gray-200 dark:bg-slate-700" />
+          <span className="text-xs text-gray-400 dark:text-slate-500">or</span>
+          <div className="flex-1 h-px bg-gray-200 dark:bg-slate-700" />
         </div>
         <Button variant="secondary" full disabled={loading} onClick={signInAsGuest}>
           {t("auth.continue_as_guest")}
         </Button>
-        <p className="text-xs text-gray-400 text-center">{t("auth.guest_note")}</p>
+        <p className="text-xs text-gray-400 dark:text-slate-500 text-center">{t("auth.guest_note")}</p>
       </div>
 
     </div>

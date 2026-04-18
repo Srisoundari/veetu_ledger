@@ -13,9 +13,12 @@ import BottomNav from "./components/BottomNav";
 import TopBar from "./components/TopBar";
 import GuestBanner from "./components/GuestBanner";
 import Spinner from "./components/Spinner";
+import FloatingAssistant from "./components/FloatingAssistant";
+import { useTheme } from "./hooks/useTheme";
 
 function MainApp({ user }) {
   const { isGuest } = useAuth();
+  const { dark, toggle } = useTheme();
   const { household, loading, create, join, rename, newInvite, leave } = useHousehold(user);
 
   // Default to Household tab until they've joined/created one
@@ -29,10 +32,12 @@ function MainApp({ user }) {
   const bottomTabs = ["dashboard", "expenses", "projects", "list", "household"];
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-slate-50 dark:bg-slate-950 transition-colors">
       <TopBar
         onHome={() => setTab("expenses")}
         onProfile={() => setTab("profile")}
+        dark={dark}
+        onToggleTheme={toggle}
       />
       <GuestBanner />
       <div className="flex-1 overflow-hidden flex flex-col">
@@ -56,6 +61,14 @@ function MainApp({ user }) {
       </div>
       {bottomTabs.includes(tab) && (
         <BottomNav active={tab} onChange={setTab} />
+      )}
+      {!isGuest && ["expenses", "projects", "list"].includes(tab) && (
+        <FloatingAssistant
+          onSaved={(type) => {
+            if (type === "expense")        setTab("expenses");
+            else if (type === "list_item") setTab("list");
+          }}
+        />
       )}
     </div>
   );

@@ -3,24 +3,25 @@ import { useExpenses } from "../../hooks/useExpenses";
 import { useProjects } from "../../hooks/useProjects";
 import { useSharedList } from "../../hooks/useSharedList";
 import { projectsApi } from "../../api/projects.api";
-import PageHeader from "../../components/PageHeader";
 import Spinner from "../../components/Spinner";
+import PageInfo from "../../components/PageInfo";
 import { formatCurrency, formatDate, currentMonth } from "../../utils/format";
 
 // ── constants ─────────────────────────────────────────────────────────────────
 
 const PALETTE = [
-  "#22c55e", "#3b82f6", "#f59e0b", "#ef4444",
-  "#8b5cf6", "#06b6d4", "#f97316", "#ec4899",
+  "#0d9488", // teal-600
+  "#6366f1", // indigo-500
+  "#f59e0b", // amber-500
+  "#8b5cf6", // violet-500
+  "#0891b2", // cyan-600
+  "#f43f5e", // rose-500
+  "#10b981", // emerald-500
+  "#a78bfa", // violet-400
 ];
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-function shiftMonth(ym, delta) {
-  const [y, m] = ym.split("-").map(Number);
-  const d = new Date(y, m - 1 + delta, 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
 
 function monthLabel(ym) {
   const [y, m] = ym.split("-").map(Number);
@@ -49,7 +50,7 @@ function DonutChart({ data, size = 140, centerLabel }) {
   return (
     <svg width={size} height={size} className="shrink-0">
       {/* background track */}
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f3f4f6" strokeWidth={sw} />
+      <circle cx={cx} cy={cy} r={r} fill="none" className="stroke-slate-100 dark:stroke-slate-700" strokeWidth={sw} />
 
       {data.map((d, i) => {
         const fraction = d.value / total;
@@ -84,7 +85,7 @@ function DonutChart({ data, size = 140, centerLabel }) {
         textAnchor="middle"
         fontSize={size * 0.095}
         fontWeight="700"
-        fill="#111827"
+        className="fill-slate-900 dark:fill-slate-100"
       >
         {centerLabel}
       </text>
@@ -144,243 +145,232 @@ export default function Dashboard({ setTab }) {
   }, [expenses, selectedCategory]);
 
   const handleMonthChange = (m) => { setMonth(m); setSelected("All"); };
-  const isCurrentMonth    = month === now;
 
   // ── render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full">
-      <PageHeader title="Home" />
+    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950">
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 pb-24 flex flex-col gap-4">
+      {/* ── Hero ──────────────────────────────────────────────────────────────── */}
+      <div className="bg-gradient-to-b from-slate-900 to-slate-800 px-5 pt-14 pb-7">
 
-        {/* ── Month navigation ─────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => handleMonthChange(shiftMonth(month, -1))}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-100 shadow-sm text-gray-600 text-lg active:bg-gray-50"
-          >
-            ←
-          </button>
-          <span className="text-sm font-semibold text-gray-800">{monthLabel(month)}</span>
-          <button
-            onClick={() => handleMonthChange(shiftMonth(month, 1))}
-            disabled={isCurrentMonth}
-            className={`w-9 h-9 flex items-center justify-center rounded-xl border shadow-sm text-lg
-              ${isCurrentMonth
-                ? "bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed"
-                : "bg-white border-gray-100 text-gray-600 active:bg-gray-50"}`}
-          >
-            →
-          </button>
+        {/* Total spent + month picker on same line */}
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-slate-400 text-xs uppercase tracking-widest">Total Spent</p>
+            <p className="text-white text-4xl font-bold tracking-tight mt-1">
+              {expLoading ? "…" : formatCurrency(totalExpenses)}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <input
+              type="month"
+              value={month}
+              max={now}
+              onChange={(e) => handleMonthChange(e.target.value)}
+              className="bg-white/15 text-white text-xs font-semibold rounded-xl px-3 py-2
+                         border-0 outline-none [color-scheme:dark]"
+            />
+            <PageInfo dark text="Your monthly financial snapshot. See total spending, outstanding project balances, and pending shopping items at a glance. Tap a tile to jump to that section." />
+          </div>
         </div>
 
-        {/* ── 2 × 2 summary tiles ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Expenses */}
-          <button
-            onClick={() => setTab("expenses")}
-            className="bg-green-600 rounded-2xl p-4 flex flex-col items-start active:bg-green-700"
-          >
-            <span className="text-green-100 text-xs">This month</span>
-            <span className="text-white text-xl font-bold mt-1 leading-tight">
-              {expLoading ? "…" : formatCurrency(totalExpenses)}
-            </span>
-            <span className="text-green-200 text-xs mt-0.5">expenses</span>
-          </button>
-
-          {/* To be paid */}
+        {/* Stat chips */}
+        <div className="flex gap-3 mt-4">
           <button
             onClick={() => setTab("projects")}
-            className="bg-orange-50 border border-orange-100 rounded-2xl p-4 flex flex-col items-start active:bg-orange-100"
+            className="bg-white/10 rounded-xl px-3 py-2 flex-1 text-center active:bg-white/20"
           >
-            <span className="text-orange-400 text-xs">To be paid</span>
-            <span className="text-orange-600 text-xl font-bold mt-1 leading-tight">
+            <p className="text-slate-400 text-xs">To pay</p>
+            <p className="text-white text-sm font-bold mt-0.5">
               {balanceLoading ? "…" : formatCurrency(balance?.total_balance ?? 0)}
-            </span>
-            <span className="text-orange-300 text-xs mt-0.5">project balance</span>
+            </p>
           </button>
-
-          {/* Pending items */}
           <button
             onClick={() => setTab("list")}
-            className="bg-white border border-gray-100 shadow-sm rounded-2xl p-4 flex flex-col items-start active:bg-gray-50"
+            className="bg-white/10 rounded-xl px-3 py-2 flex-1 text-center active:bg-white/20"
           >
-            <span className="text-gray-400 text-xs">Shopping</span>
-            <span className="text-gray-900 text-xl font-bold mt-1 leading-tight">
+            <p className="text-slate-400 text-xs">Items</p>
+            <p className="text-white text-sm font-bold mt-0.5">
               {listLoading ? "…" : pendingItems}
-            </span>
-            <span className="text-gray-400 text-xs mt-0.5">pending items</span>
+            </p>
           </button>
-
-          {/* Active projects */}
           <button
             onClick={() => setTab("projects")}
-            className="bg-white border border-gray-100 shadow-sm rounded-2xl p-4 flex flex-col items-start active:bg-gray-50"
+            className="bg-white/10 rounded-xl px-3 py-2 flex-1 text-center active:bg-white/20"
           >
-            <span className="text-gray-400 text-xs">Projects</span>
-            <span className="text-gray-900 text-xl font-bold mt-1 leading-tight">
+            <p className="text-slate-400 text-xs">Projects</p>
+            <p className="text-white text-sm font-bold mt-0.5">
               {projLoading ? "…" : activeProjects}
-            </span>
-            <span className="text-gray-400 text-xs mt-0.5">active</span>
+            </p>
           </button>
         </div>
 
-        {expLoading && <Spinner />}
+      </div>
 
-        {!expLoading && expenses.length === 0 && (
-          <p className="text-center text-gray-400 text-sm mt-4">
-            No expenses in {monthLabel(month)}
-          </p>
-        )}
+      {/* ── Body ──────────────────────────────────────────────────────────────── */}
+      <div className="bg-slate-50 dark:bg-slate-950 flex-1 overflow-y-auto pb-24">
+        <div className="px-4 py-4 flex flex-col gap-4">
 
-        {/* ── Breakdown section ─────────────────────────────────────────────── */}
-        {!expLoading && expenses.length > 0 && (
-          <>
-            {/* Section header + chart toggle */}
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                Breakdown
-              </p>
-              <div className="flex bg-gray-100 rounded-lg p-0.5">
-                <button
-                  onClick={() => setChartType("donut")}
-                  className={`px-3 py-1 rounded-md text-xs font-medium transition-colors
-                    ${chartType === "donut" ? "bg-white text-gray-800 shadow-sm" : "text-gray-500"}`}
-                >
-                  Donut
-                </button>
-                <button
-                  onClick={() => setChartType("bar")}
-                  className={`px-3 py-1 rounded-md text-xs font-medium transition-colors
-                    ${chartType === "bar" ? "bg-white text-gray-800 shadow-sm" : "text-gray-500"}`}
-                >
-                  Bar
-                </button>
+          {expLoading && <Spinner />}
+
+          {!expLoading && expenses.length === 0 && (
+            <p className="text-center text-slate-400 dark:text-slate-500 text-sm mt-6">
+              No expenses in {monthLabel(month)}
+            </p>
+          )}
+
+          {/* ── Breakdown section ───────────────────────────────────────────── */}
+          {!expLoading && expenses.length > 0 && (
+            <>
+              {/* Section header + chart toggle */}
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                  Breakdown
+                </p>
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-0.5 flex border border-slate-100 dark:border-slate-700 shadow-sm">
+                  <button
+                    onClick={() => setChartType("donut")}
+                    className={chartType === "donut"
+                      ? "bg-slate-900 text-white rounded-lg px-3 py-1.5 text-xs font-semibold"
+                      : "text-slate-400 dark:text-slate-500 px-3 py-1.5 text-xs"}
+                  >
+                    Donut
+                  </button>
+                  <button
+                    onClick={() => setChartType("bar")}
+                    className={chartType === "bar"
+                      ? "bg-slate-900 text-white rounded-lg px-3 py-1.5 text-xs font-semibold"
+                      : "text-slate-400 dark:text-slate-500 px-3 py-1.5 text-xs"}
+                  >
+                    Bar
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Chart card */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-              {chartType === "donut" ? (
-                <div className="flex items-center gap-4">
-                  <DonutChart
-                    data={donutData}
-                    size={130}
-                    centerLabel={formatCurrency(totalExpenses)}
-                  />
-                  {/* Legend */}
-                  <div className="flex flex-col gap-2 flex-1 min-w-0">
+              {/* Chart card */}
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-4">
+                {chartType === "donut" ? (
+                  <div className="flex items-center gap-4">
+                    <DonutChart
+                      data={donutData}
+                      size={130}
+                      centerLabel={formatCurrency(totalExpenses)}
+                    />
+                    {/* Legend */}
+                    <div className="flex flex-col gap-2 flex-1 min-w-0">
+                      {categories.map((cat) => (
+                        <div key={cat.name} className="flex items-center gap-2">
+                          <div
+                            className="w-2.5 h-2.5 rounded-full shrink-0"
+                            style={{ backgroundColor: cat.color }}
+                          />
+                          <span className="text-slate-600 dark:text-slate-300 text-xs truncate flex-1">{cat.name}</span>
+                          <span className="text-xs font-semibold text-gray-800 dark:text-slate-200 shrink-0">
+                            {formatCurrency(cat.total)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
                     {categories.map((cat) => (
-                      <div key={cat.name} className="flex items-center gap-2">
-                        <div
-                          className="w-2.5 h-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: cat.color }}
-                        />
-                        <span className="text-xs text-gray-600 truncate flex-1">{cat.name}</span>
-                        <span className="text-xs font-semibold text-gray-800 shrink-0">
-                          {formatCurrency(cat.total)}
-                        </span>
+                      <div key={cat.name}>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="text-gray-500 dark:text-slate-400">{cat.name}</span>
+                          <span className="font-semibold text-gray-700 dark:text-slate-200">
+                            {formatCurrency(cat.total)}
+                          </span>
+                        </div>
+                        <div className="h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-300"
+                            style={{
+                              width: `${((cat.total / maxCatTotal) * 100).toFixed(1)}%`,
+                              backgroundColor: cat.color,
+                            }}
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-3">
-                  {categories.map((cat) => (
-                    <div key={cat.name}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-gray-500">{cat.name}</span>
-                        <span className="font-semibold text-gray-700">
-                          {formatCurrency(cat.total)}
-                        </span>
-                      </div>
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-300"
-                          style={{
-                            width: `${((cat.total / maxCatTotal) * 100).toFixed(1)}%`,
-                            backgroundColor: cat.color,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
-            {/* ── Category filter chips ─────────────────────────────────────── */}
-            <div
-              className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4"
-              style={{ scrollbarWidth: "none" }}
-            >
-              <button
-                onClick={() => setSelected("All")}
-                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors
-                  ${selectedCategory === "All"
-                    ? "bg-green-600 text-white border-green-600"
-                    : "bg-white text-gray-600 border-gray-200"}`}
+              {/* ── Category filter chips ──────────────────────────────────── */}
+              <div
+                className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4"
+                style={{ scrollbarWidth: "none" }}
               >
-                All · {formatCurrency(totalExpenses)}
-              </button>
-              {categories.map((cat) => (
                 <button
-                  key={cat.name}
-                  onClick={() => setSelected(cat.name)}
+                  onClick={() => setSelected("All")}
                   className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors
-                    ${selectedCategory === cat.name
-                      ? "text-white border-transparent"
-                      : "bg-white text-gray-600 border-gray-200"}`}
-                  style={
-                    selectedCategory === cat.name
-                      ? { backgroundColor: cat.color, borderColor: cat.color }
-                      : {}
-                  }
+                    ${selectedCategory === "All"
+                      ? "bg-rose-600 text-white border-rose-600"
+                      : "bg-white border-slate-200 text-slate-500"}`}
                 >
-                  {cat.name} · {formatCurrency(cat.total)}
+                  All · {formatCurrency(totalExpenses)}
                 </button>
-              ))}
-            </div>
-
-            {/* ── Expense list ─────────────────────────────────────────────── */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              {visibleExpenses.length === 0 ? (
-                <p className="text-center text-gray-400 text-sm py-6">
-                  No expenses in this category
-                </p>
-              ) : (
-                visibleExpenses.map((e, idx) => (
-                  <div
-                    key={e.id}
-                    className={`flex items-center justify-between px-4 py-3
-                      ${idx < visibleExpenses.length - 1 ? "border-b border-gray-50" : ""}`}
+                {categories.map((cat) => (
+                  <button
+                    key={cat.name}
+                    onClick={() => setSelected(cat.name)}
+                    className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors
+                      ${selectedCategory === cat.name
+                        ? "text-white border-transparent"
+                        : "bg-white border-slate-200 text-slate-500"}`}
+                    style={
+                      selectedCategory === cat.name
+                        ? { backgroundColor: cat.color, borderColor: cat.color }
+                        : {}
+                    }
                   >
-                    <div className="flex-1 min-w-0 pr-3">
-                      <p className="text-sm font-medium text-gray-800 truncate">
-                        {e.note || e.category || "—"}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {e.category || "Uncategorised"} · {formatDate(e.date)}
+                    {cat.name} · {formatCurrency(cat.total)}
+                  </button>
+                ))}
+              </div>
+
+              {/* ── Expense list ───────────────────────────────────────────── */}
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden">
+                {visibleExpenses.length === 0 ? (
+                  <p className="text-center text-slate-400 dark:text-slate-500 text-sm mt-6 py-6">
+                    No expenses in this category
+                  </p>
+                ) : (
+                  visibleExpenses.map((e, idx) => (
+                    <div
+                      key={e.id}
+                      className={`flex items-center justify-between px-4 py-3
+                        ${idx < visibleExpenses.length - 1 ? "border-b border-gray-50 dark:border-slate-700/50" : ""}`}
+                    >
+                      <div className="flex-1 min-w-0 pr-3">
+                        <p className="text-slate-800 dark:text-slate-100 text-sm font-medium truncate">
+                          {e.note || e.category || "—"}
+                        </p>
+                        <p className="text-slate-400 dark:text-slate-500 text-xs mt-0.5">
+                          {e.category || "Uncategorised"} · {formatDate(e.date)}
+                        </p>
+                      </div>
+                      <p className="text-slate-900 dark:text-slate-100 text-sm font-semibold shrink-0">
+                        {formatCurrency(e.amount)}
                       </p>
                     </div>
-                    <p className="text-sm font-semibold text-gray-900 shrink-0">
-                      {formatCurrency(e.amount)}
-                    </p>
-                  </div>
-                ))
-              )}
-              <button
-                onClick={() => setTab("expenses")}
-                className="w-full text-center text-xs text-green-600 font-medium py-3 border-t border-gray-50 active:bg-gray-50"
-              >
-                View all expenses →
-              </button>
-            </div>
-          </>
-        )}
+                  ))
+                )}
+                <button
+                  onClick={() => setTab("expenses")}
+                  className="w-full text-center text-amber-600 text-xs font-semibold py-3 border-t border-gray-50 active:bg-gray-50 dark:active:bg-slate-700"
+                >
+                  View all expenses →
+                </button>
+              </div>
+            </>
+          )}
 
+        </div>
       </div>
+
     </div>
   );
 }

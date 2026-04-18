@@ -6,6 +6,7 @@ import Card from "../../components/Card";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 import Spinner from "../../components/Spinner";
+import PageInfo from "../../components/PageInfo";
 
 // ── No household: create or join ──────────────────────────────────
 function HouseholdSetup({ onCreate, onJoin }) {
@@ -33,8 +34,8 @@ function HouseholdSetup({ onCreate, onJoin }) {
     <div className="flex flex-col h-full px-6 justify-center">
       <div className="text-center mb-8">
         <p className="text-4xl mb-3">🏠</p>
-        <h2 className="text-xl font-bold text-gray-800">Set up your household</h2>
-        <p className="text-sm text-gray-400 mt-1">Create a new one or join with an invite code</p>
+        <h2 className="text-xl font-bold text-gray-800 dark:text-slate-100">Set up your household</h2>
+        <p className="text-sm text-gray-400 dark:text-slate-500 mt-1">Create a new one or join with an invite code</p>
       </div>
 
       {!mode && (
@@ -150,8 +151,10 @@ export default function Household({ household, onCreate, onJoin, onRename, onNew
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <PageHeader title="Household" />
+    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950">
+      <PageHeader title="Household" action={
+        <PageInfo text="Manage your household. Share the invite code with family so they can join and access the shared expense list and projects. All members see the same data." />
+      } />
 
       <div className="flex-1 overflow-y-auto px-4 py-4 pb-24 flex flex-col gap-4">
 
@@ -179,12 +182,12 @@ export default function Household({ household, onCreate, onJoin, onRename, onNew
           ) : (
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Household name</p>
-                <p className="font-semibold text-gray-800 text-lg">{household.name}</p>
+                <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-0.5">Household name</p>
+                <p className="font-semibold text-gray-800 dark:text-slate-100 text-lg">{household.name}</p>
               </div>
               <button
                 onClick={() => { setEditing(true); setNewName(household.name); }}
-                className="text-sm text-green-600 font-medium px-2 py-1 hover:bg-green-50 rounded-lg"
+                className="text-sm text-teal-600 font-medium px-2 py-1 hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-lg"
               >
                 Edit
               </button>
@@ -194,15 +197,15 @@ export default function Household({ household, onCreate, onJoin, onRename, onNew
 
         {/* Invite code */}
         <Card>
-          <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Invite code</p>
-          <p className="text-xs text-gray-400 mb-3">Share with family to join your household</p>
+          <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Invite code</p>
+          <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">Share with family to join your household</p>
           <div className="flex items-center gap-3 mb-3">
-            <span className="font-mono text-2xl font-bold text-green-700 tracking-widest">
+            <span className="font-mono text-2xl font-bold text-teal-700 dark:text-teal-300 tracking-widest">
               {household.invite_code}
             </span>
             <button
               onClick={copyCode}
-              className="text-xs text-green-600 border border-green-200 px-3 py-1.5 rounded-lg hover:bg-green-50"
+              className="text-xs text-teal-600 border border-teal-200 dark:border-teal-700 px-3 py-1.5 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-900/30"
             >
               {copied ? "Copied!" : "Copy"}
             </button>
@@ -210,7 +213,7 @@ export default function Household({ household, onCreate, onJoin, onRename, onNew
           <button
             onClick={handleNewInvite}
             disabled={newingInvite}
-            className="text-xs text-gray-400 hover:text-gray-600 underline"
+            className="text-xs text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 underline"
           >
             {newingInvite ? "Generating..." : "Generate new code"}
           </button>
@@ -218,25 +221,25 @@ export default function Household({ household, onCreate, onJoin, onRename, onNew
 
         {/* Members */}
         <Card>
-          <p className="text-xs text-gray-400 uppercase tracking-wide mb-3">
+          <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-3">
             Members {!membersLoading && `· ${members.length}`}
           </p>
           {membersLoading ? (
             <Spinner />
           ) : members.length === 0 ? (
-            <p className="text-sm text-gray-400">No members found</p>
+            <p className="text-sm text-gray-400 dark:text-slate-500">No members found</p>
           ) : (
             <div className="flex flex-col gap-2">
               {members.map((m) => (
                 <div key={m.id} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-green-100 text-green-700 font-semibold text-sm flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-semibold text-sm flex items-center justify-center shrink-0">
                     {(m.name || m.id)?.[0]?.toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">
+                    <p className="text-sm font-medium text-gray-800 dark:text-slate-100 truncate">
                       {m.name || <span className="text-gray-400 italic">Unnamed</span>}
                       {m.id === user?.id && (
-                        <span className="ml-2 text-xs text-green-600 font-normal">(you)</span>
+                        <span className="ml-2 text-xs text-teal-600 font-normal">(you)</span>
                       )}
                     </p>
                   </div>
@@ -249,8 +252,8 @@ export default function Household({ household, onCreate, onJoin, onRename, onNew
         {/* Leave */}
         {confirmLeave ? (
           <Card>
-            <p className="text-sm text-gray-700 mb-3 font-medium">Leave this household?</p>
-            <p className="text-xs text-gray-400 mb-4">
+            <p className="text-sm text-gray-700 dark:text-slate-200 mb-3 font-medium">Leave this household?</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mb-4">
               You'll need a new invite code to rejoin. Your data stays in the household.
             </p>
             <div className="flex gap-2">

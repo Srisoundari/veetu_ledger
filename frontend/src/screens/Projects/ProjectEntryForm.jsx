@@ -52,11 +52,11 @@ export default function ProjectEntryForm({ onSave, onCancel, dayNumber }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-4">
       {/* NLP quick fill */}
-      <div className="bg-green-50 rounded-2xl p-3">
+      <div className="bg-blue-50 dark:bg-slate-700 rounded-2xl p-3">
         <button
           type="button"
           onClick={() => setShowNLP((v) => !v)}
-          className="text-sm text-green-700 font-medium"
+          className="text-sm text-blue-700 dark:text-blue-300 font-medium"
         >
           💬 {showNLP ? "Hide" : "Fill from text"}
         </button>
