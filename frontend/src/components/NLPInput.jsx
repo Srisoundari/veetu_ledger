@@ -71,7 +71,7 @@ export default function NLPInput({ onResult, projectId = null, fillOnly = false 
             {parsed.length === 1 ? t("nlp.confirm") : `${parsed.length} items to save`}
           </p>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-0.5">
             {parsed.map((item, i) => (
               <div key={i} className="bg-white rounded-xl p-3 border border-slate-100 dark:bg-slate-700 dark:border-slate-600">
                 <span className="text-xs font-medium text-teal-600 uppercase tracking-wide mb-1.5 block dark:text-teal-400">

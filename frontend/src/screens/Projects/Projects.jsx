@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useProjects } from "../../hooks/useProjects";
-import PageHeader from "../../components/PageHeader";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 import Spinner from "../../components/Spinner";
@@ -11,15 +10,16 @@ import PageInfo from "../../components/PageInfo";
 
 export default function Projects() {
   const { t } = useTranslation();
-  const [selected, setSelected]         = useState(null);
-  const [showForm, setShowForm]         = useState(false);
-  const [name, setName]                 = useState("");
-  const [desc, setDesc]                 = useState("");
-  const [creating, setCreating]         = useState(false);
-  const [editingId, setEditingId]       = useState(null);
-  const [editForm, setEditForm]         = useState({});
-  const [editSaving, setEditSaving]     = useState(false);
-  const [editError, setEditError]       = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [name, setName] = useState("");
+  const [desc, setDesc] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
   const { projects, loading, error, create, update, complete, remove } = useProjects();
 
@@ -36,27 +36,28 @@ export default function Projects() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    setCreating(true);
+    setCreating(true); setCreateError(null);
     try { await create({ name, description: desc }); setName(""); setDesc(""); setShowForm(false); }
+    catch (e) { setCreateError(e.message); }
     finally { setCreating(false); }
   };
 
-  const active    = projects.filter((p) => p.status !== "completed");
+  const active = projects.filter((p) => p.status !== "completed");
   const completed = projects.filter((p) => p.status === "completed");
 
-  const totalBalance = active.reduce((s, p) => s + (p.summary?.balance     ?? 0), 0);
-  const totalPaid    = active.reduce((s, p) => s + (p.summary?.paid_amount ?? 0), 0);
+  const totalBalance = active.reduce((s, p) => s + (p.summary?.balance ?? 0), 0);
+  const totalPaid = active.reduce((s, p) => s + (p.summary?.paid_amount ?? 0), 0);
 
   return (
     <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950">
 
       {/* ── Teal header ────────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-teal-600 to-cyan-700 px-5 pt-12 pb-5">
+      <div className="bg-gradient-to-br from-teal-600 to-cyan-700 px-5 pt-5 pb-5">
 
         {/* Title + info */}
         <div className="flex items-center gap-2">
-          <p className="text-white text-xl font-bold">Projects</p>
-          <PageInfo dark text="Track construction, renovation, or any ongoing work. Each project has daily entries recording work done, amounts billed, and payments received. The outstanding balance updates automatically." />
+          <p className="text-white text-xl font-bold">Categories</p>
+          <PageInfo dark text="Organise expenses into categories — home renovation, construction, events, and more. Paste a WhatsApp expense report inside a category to bulk-add items. Outstanding balances update automatically." />
         </div>
 
         {/* Stat chips */}
@@ -77,22 +78,23 @@ export default function Projects() {
       </div>
 
       {/* ── Body ───────────────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto pb-24 px-4 py-4 flex flex-col gap-3">
+      <div className="flex-1 overflow-y-auto pb-52 px-4 py-4 flex flex-col gap-3">
 
         {/* Create form */}
         {showForm && (
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-4">
-            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">New Project</p>
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">New Category</p>
             <form onSubmit={handleCreate} className="flex flex-col gap-3">
-              <Input label={t("project.name")} value={name}
+              <Input label="Category name" value={name}
                 onChange={(e) => setName(e.target.value)} required />
               <Input label="Description (optional)" value={desc}
                 onChange={(e) => setDesc(e.target.value)} />
+              {createError && <p className="text-xs text-red-500">{createError}</p>}
               <div className="flex gap-2">
                 <Button type="submit" full disabled={creating}>
                   {creating ? "Creating…" : "Create"}
                 </Button>
-                <Button variant="secondary" full onClick={() => setShowForm(false)}>
+                <Button variant="secondary" full onClick={() => { setShowForm(false); setCreateError(null); }}>
                   {t("common.cancel")}
                 </Button>
               </div>
@@ -101,10 +103,10 @@ export default function Projects() {
         )}
 
         {loading && <Spinner />}
-        {error   && <p className="text-sm text-red-500 text-center">{error}</p>}
+        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
         {!loading && projects.length === 0 && !showForm && (
-          <p className="text-center text-slate-400 dark:text-slate-500 text-sm mt-10">No projects yet</p>
+          <p className="text-center text-slate-400 dark:text-slate-500 text-sm mt-10">No categories yet</p>
         )}
 
         {/* Active */}
@@ -158,20 +160,21 @@ export default function Projects() {
           fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
           <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
         </svg>
-        New project
+        New category
       </button>
     </div>
   );
 }
 
-// ── ProjectCard ──────────────────────────────────────────────────────────────
+// ── GroupCard ────────────────────────────────────────────────────────────────
 
 function ProjectCard({
   project: p, editingId, editForm, editError, editSaving,
   onSelect, onStartEdit, onEditChange, onSaveEdit, onCancelEdit, onComplete, onRemove,
 }) {
-  const s       = p.summary ?? { total_amount: 0, paid_amount: 0, balance: 0, days: 0 };
-  const paidPct = s.total_amount > 0 ? Math.min(100, (s.paid_amount / s.total_amount) * 100) : 0;
+  const s = p.summary ?? { total_amount: 0, paid_amount: 0, balance: 0, days: 0 };
+  const paidValue = Math.max(0, (s.total_amount ?? 0) - (s.balance ?? 0));
+  const paidPct = s.total_amount > 0 ? Math.min(100, (paidValue / s.total_amount) * 100).toFixed(2) : "0.00";
   const isComplete = p.status === "completed";
 
   if (editingId === p.id) {
@@ -193,9 +196,10 @@ function ProjectCard({
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden">
-      {/* Teal top accent bar */}
-      <div className={`h-1 ${isComplete ? "bg-slate-200" : "bg-teal-500"}`} />
+    <div className={`bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden ${
+      s.days > 0 ? "min-h-[11rem]" : "min-h-[6rem]"
+    }`}>
+      <div className={`h-1 ${isComplete ? "bg-slate-200 dark:bg-slate-600" : "bg-teal-500"}`} />
 
       <div className="p-4">
         {/* Name row */}
@@ -204,13 +208,9 @@ function ProjectCard({
             <p className={`font-semibold text-slate-800 dark:text-slate-100 ${isComplete ? "line-through text-slate-400" : ""}`}>
               {p.name}
             </p>
-            {p.description && (
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">{p.description}</p>
-            )}
           </div>
-          <span className={`text-xs px-2.5 py-1 rounded-full font-semibold shrink-0 ${
-            isComplete ? "bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500" : "bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300"
-          }`}>
+          <span className={`text-xs px-2.5 py-1 rounded-full font-semibold shrink-0 ${isComplete ? "bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500" : "bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300"
+            }`}>
             {p.status}
           </span>
         </div>
@@ -218,40 +218,31 @@ function ProjectCard({
         {/* Financial summary */}
         {s.days > 0 && (
           <div className="mt-4">
-            {/* Progress bar */}
             <div className="flex justify-between text-xs text-slate-400 dark:text-slate-500 mb-1.5">
-              <span>{s.days} {s.days === 1 ? "day" : "days"} worked</span>
-              <span className="font-medium text-teal-600">{Math.round(paidPct)}% paid</span>
+              <span>{s.days} {s.days === 1 ? "item" : "items"}</span>
+              <span className="font-medium text-teal-600">{paidPct}% paid</span>
             </div>
             <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full bg-teal-500 transition-all"
-                style={{ width: `${paidPct}%` }}
-              />
+              <div className="h-full rounded-full bg-teal-500 transition-all" style={{ width: `${paidPct}%` }} />
             </div>
-
-            {/* Amounts row */}
-            <div className="flex gap-4 mt-3">
-              <div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Total</p>
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{formatCurrency(s.total_amount)}</p>
-              </div>
-              <div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Paid</p>
-                <p className="text-sm font-bold text-teal-600">{formatCurrency(s.paid_amount)}</p>
-              </div>
+            <div className="flex items-baseline flex-wrap gap-x-3 gap-y-1 mt-3 text-xs">
+              <span className="text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                Total <span className="text-slate-700 dark:text-slate-200 font-bold ml-0.5">{formatCurrency(s.total_amount)}</span>
+              </span>
+              <span className="text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                Paid <span className="text-teal-600 font-bold ml-0.5">{formatCurrency(paidValue)}</span>
+              </span>
               {s.balance > 0 && (
-                <div>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Due</p>
-                  <p className="text-sm font-bold text-orange-500">{formatCurrency(s.balance)}</p>
-                </div>
+                <span className="text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                  Due <span className="text-orange-500 font-bold ml-0.5">{formatCurrency(s.balance)}</span>
+                </span>
               )}
             </div>
           </div>
         )}
 
         {/* Action row */}
-        <div className="flex items-center gap-4 mt-4 pt-3 border-t border-slate-50">
+        <div className="flex items-center gap-4 mt-4 pt-3 border-t border-slate-50 dark:border-slate-700/50">
           {!isComplete && onComplete && (
             <button
               onClick={(e) => { e.stopPropagation(); onComplete(p.id); }}

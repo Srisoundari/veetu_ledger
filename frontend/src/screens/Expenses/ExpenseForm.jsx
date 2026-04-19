@@ -11,7 +11,7 @@ export default function ExpenseForm({ onSave, onCancel, initial = {} }) {
   const [form, setForm] = useState({
     date:     initial.date     || toISODate(),
     amount:   initial.amount   || "",
-    note:     initial.note     || "",
+    description:     initial.description     || "",
     category: initial.category || "other",
   });
   const [loading, setLoading] = useState(false);
@@ -32,8 +32,8 @@ export default function ExpenseForm({ onSave, onCancel, initial = {} }) {
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-4">
       <Input label={t("expense.amount")} type="number" value={form.amount}
         onChange={set("amount")} placeholder="0" required />
-      <Input label={t("expense.note")}   value={form.note}
-        onChange={set("note")} placeholder="Rice, electricity..." />
+      <Input label={t("expense.description")}   value={form.description}
+        onChange={set("description")} placeholder="Rice, electricity..." />
       <Input label={t("expense.date")}   type="date" value={form.date}
         onChange={set("date")} required />
 

@@ -18,28 +18,26 @@ class HouseholdRename(BaseModel):
     name: str
 
 
-# ---------- Expense ----------
+# ---------- Expense (now unified: standalone OR group line-item) ----------
 class ExpenseCreate(BaseModel):
     date: datetime.date
     amount: float
-    note: Optional[str] = None
+    paid_amount: Optional[float] = None          # null = fully paid
+    description: Optional[str] = None            # replaces note + work_description
     category: Optional[str] = None
+    project_id: Optional[str] = None             # null = standalone
 
 
 class ExpenseUpdate(BaseModel):
     date: Optional[datetime.date] = None
     amount: Optional[float] = None
-    note: Optional[str] = None
+    paid_amount: Optional[float] = None
+    description: Optional[str] = None
     category: Optional[str] = None
+    project_id: Optional[str] = None
 
 
-class ExpenseResponse(ExpenseCreate):
-    id: str
-    household_id: str
-    added_by: str
-
-
-# ---------- Project ----------
+# ---------- Project (group) ----------
 class ProjectCreate(BaseModel):
     name: str
     description: Optional[str] = None
@@ -48,22 +46,6 @@ class ProjectCreate(BaseModel):
 class ProjectUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
-
-
-class ProjectEntryCreate(BaseModel):
-    entry_date: datetime.date
-    day_number: Optional[int] = None
-    work_description: Optional[str] = None
-    total_amount: float
-    paid_amount: float
-
-
-class ProjectEntryUpdate(BaseModel):
-    entry_date: Optional[datetime.date] = None
-    day_number: Optional[int] = None
-    work_description: Optional[str] = None
-    total_amount: Optional[float] = None
-    paid_amount: Optional[float] = None
 
 
 # ---------- Shared List ----------
@@ -80,9 +62,9 @@ class ListItemUpdate(BaseModel):
 # ---------- NLP ----------
 class ParseRequest(BaseModel):
     text: str
-    language: str = "en"  # 'en' or 'ta'
+    language: str = "en"
 
 
 class SaveRequest(BaseModel):
     items: list[dict]
-    project_id: Optional[str] = None  # required when saving project_entry items
+    project_id: Optional[str] = None  # if set, every expense item is attached to this group

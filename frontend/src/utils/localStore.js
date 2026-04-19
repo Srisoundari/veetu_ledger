@@ -50,24 +50,31 @@ export const localProjects = {
   delete: (id) => save(K.projects, read(K.projects).filter((p) => p.id !== id)),
 };
 
-// ---------- Project Entries ----------
+// ---------- Project expenses (unified field names: date/amount/description) ----------
 export const localEntries = {
   list: (pid) => read(K.entries(pid)),
   create: (pid, data) => {
+    const amount = data.amount ?? 0;
+    const paid   = data.paid_amount ?? amount;
     const item = {
       ...data,
       id: uid(),
       project_id: pid,
-      balance: (data.total_amount ?? 0) - (data.paid_amount ?? 0),
+      amount,
+      paid_amount: paid,
+      balance: amount - paid,
       created_at: now(),
     };
     save(K.entries(pid), [...read(K.entries(pid)), item]);
     return item;
   },
   update: (pid, eid, data) => {
-    const updated = read(K.entries(pid)).map((e) =>
-      e.id === eid ? { ...e, ...data, balance: (data.total_amount ?? e.total_amount) - (data.paid_amount ?? e.paid_amount) } : e
-    );
+    const updated = read(K.entries(pid)).map((e) => {
+      if (e.id !== eid) return e;
+      const amount = data.amount ?? e.amount;
+      const paid   = data.paid_amount ?? e.paid_amount ?? amount;
+      return { ...e, ...data, amount, paid_amount: paid, balance: amount - paid };
+    });
     save(K.entries(pid), updated);
     return updated.find((e) => e.id === eid);
   },
@@ -76,9 +83,9 @@ export const localEntries = {
   summary: (pid) => {
     const entries = read(K.entries(pid));
     return {
-      total_amount: entries.reduce((s, e) => s + (e.total_amount ?? 0), 0),
-      paid_amount:  entries.reduce((s, e) => s + (e.paid_amount  ?? 0), 0),
-      balance:      entries.reduce((s, e) => s + (e.balance      ?? 0), 0),
+      total_amount: entries.reduce((s, e) => s + (e.amount      ?? 0), 0),
+      paid_amount:  entries.reduce((s, e) => s + (e.paid_amount ?? 0), 0),
+      balance:      entries.reduce((s, e) => s + (e.balance     ?? 0), 0),
       days:         entries.length,
     };
   },
