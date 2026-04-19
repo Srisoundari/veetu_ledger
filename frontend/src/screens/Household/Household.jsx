@@ -156,7 +156,7 @@ export default function Household({ household, onCreate, onJoin, onRename, onNew
         <PageInfo text="Manage your household. Share the invite code with family so they can join and access the shared expense list and projects. All members see the same data." />
       } />
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 pb-24 flex flex-col gap-4">
+      <div className="flex-1 overflow-y-auto px-4 py-4 pb-52 flex flex-col gap-4">
 
         {/* Name */}
         <Card>

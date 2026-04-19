@@ -40,7 +40,7 @@ export default function Profile({ onBack }) {
     <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950">
       <PageHeader title="Profile" onBack={onBack} />
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 pb-24 flex flex-col gap-4">
+      <div className="flex-1 overflow-y-auto px-4 py-4 pb-52 flex flex-col gap-4">
 
         <Card>
           <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Signed in as</p>

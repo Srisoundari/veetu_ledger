@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import households, expenses, projects, shared_list, nlp
+from routers import households, expenses, projects, shared_list, nlp, dashboard
 
 app = FastAPI(title="Finance App API", version="1.0.0")
 
@@ -21,6 +21,7 @@ app.include_router(expenses.router,     prefix="/expenses",    tags=["expenses"]
 app.include_router(projects.router,     prefix="/projects",    tags=["projects"])
 app.include_router(shared_list.router,  prefix="/list",        tags=["list"])
 app.include_router(nlp.router,          prefix="/nlp",         tags=["nlp"])
+app.include_router(dashboard.router,    prefix="/dashboard",   tags=["dashboard"])
 
 
 @app.get("/")

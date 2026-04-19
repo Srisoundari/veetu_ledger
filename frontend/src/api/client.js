@@ -15,15 +15,21 @@ async function request(method, path, body = null, _retry = true) {
   );
 
   try {
-    const res = await fetch(`${BASE_URL}${path}`, {
-      method,
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: body ? JSON.stringify(body) : null,
-    });
+    let res;
+    try {
+      res = await fetch(`${BASE_URL}${path}`, {
+        method,
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: body ? JSON.stringify(body) : null,
+      });
+    } catch (networkErr) {
+      if (networkErr.name === "TimeoutError") throw new Error("Request timed out. Is the backend running?");
+      throw new Error("Cannot reach the server. Is the backend running?");
+    }
 
     // Token expired — refresh once and retry
     if (res.status === 401 && _retry) {

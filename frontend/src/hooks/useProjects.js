@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "./useAuth";
 import { projectsApi } from "../api/projects.api";
+import { expensesApi } from "../api/expenses.api";
 import { localProjects, localEntries } from "../utils/localStore";
 
 export function useProjects() {
@@ -44,18 +45,20 @@ export function useProjects() {
 
   const remove = async (id) => {
     if (!isGuest) await projectsApi.delete(id);
+    else localProjects.delete(id);
     setProjects((prev) => prev.filter((p) => p.id !== id));
   };
 
   return { projects, loading, error, create, update, complete, remove, refresh: load };
 }
 
+// ── Expenses scoped to one group (replaces old useProjectEntries) ────────────
 export function useProjectEntries(projectId) {
   const { isGuest } = useAuth();
-  const [entries, setEntries]   = useState([]);
-  const [summary, setSummary]   = useState(null);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState(null);
+  const [entries, setEntries] = useState([]);
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
 
   const load = async () => {
     try {
@@ -66,8 +69,8 @@ export function useProjectEntries(projectId) {
         setSummary(localEntries.summary(projectId));
       } else {
         const [e, s] = await Promise.all([
-          projectsApi.listEntries(projectId),
-          projectsApi.summary(projectId),
+          expensesApi.list({ projectId }),
+          expensesApi.summary(projectId),
         ]);
         setEntries(e);
         setSummary(s);
@@ -82,37 +85,32 @@ export function useProjectEntries(projectId) {
   useEffect(() => { if (projectId) load(); }, [projectId, isGuest]);
 
   const addEntry = async (data) => {
+    const payload = { ...data, project_id: projectId };
     const entry = isGuest
       ? localEntries.create(projectId, data)
-      : await projectsApi.addEntry(projectId, data);
-    setEntries((prev) => [...prev, entry]);
-    setSummary(
-      isGuest
-        ? localEntries.summary(projectId)
-        : await projectsApi.summary(projectId)
-    );
+      : await expensesApi.create(payload);
+    setEntries((prev) => [entry, ...prev]);
+    if (!isGuest) setSummary(await expensesApi.summary(projectId));
+    else setSummary(localEntries.summary(projectId));
     return entry;
   };
 
   const updateEntry = async (entryId, data) => {
     const entry = isGuest
       ? localEntries.update(projectId, entryId, data)
-      : await projectsApi.updateEntry(projectId, entryId, data);
+      : await expensesApi.update(entryId, data);
     setEntries((prev) => prev.map((e) => (e.id === entryId ? entry : e)));
-    setSummary(isGuest ? localEntries.summary(projectId) : await projectsApi.summary(projectId));
+    if (!isGuest) setSummary(await expensesApi.summary(projectId));
+    else setSummary(localEntries.summary(projectId));
     return entry;
   };
 
   const removeEntry = async (entryId) => {
-    isGuest
-      ? localEntries.delete(projectId, entryId)
-      : await projectsApi.deleteEntry(projectId, entryId);
+    if (isGuest) localEntries.delete(projectId, entryId);
+    else await expensesApi.delete(entryId);
     setEntries((prev) => prev.filter((e) => e.id !== entryId));
-    setSummary(
-      isGuest
-        ? localEntries.summary(projectId)
-        : await projectsApi.summary(projectId)
-    );
+    if (!isGuest) setSummary(await expensesApi.summary(projectId));
+    else setSummary(localEntries.summary(projectId));
   };
 
   return { entries, summary, loading, error, addEntry, updateEntry, removeEntry, refresh: load };

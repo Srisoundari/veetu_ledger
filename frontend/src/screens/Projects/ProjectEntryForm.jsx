@@ -7,10 +7,10 @@ import { toISODate } from "../../utils/format";
 export default function ProjectEntryForm({ onSave, onCancel }) {
   const { t } = useTranslation();
   const [form, setForm] = useState({
-    entry_date:       toISODate(),
-    work_description: "",
-    total_amount:     "",
-    paid_amount:      "",
+    date:        toISODate(),
+    description: "",
+    amount:      "",
+    paid_amount: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -20,10 +20,13 @@ export default function ProjectEntryForm({ onSave, onCancel }) {
     e.preventDefault();
     setLoading(true);
     try {
+      const amount = parseFloat(form.amount);
+      const paid   = form.paid_amount === "" ? amount : parseFloat(form.paid_amount);
       await onSave({
-        ...form,
-        total_amount: parseFloat(form.total_amount),
-        paid_amount:  parseFloat(form.paid_amount) || 0,
+        date:        form.date,
+        description: form.description,
+        amount,
+        paid_amount: paid,
       });
     } finally {
       setLoading(false);
@@ -32,14 +35,14 @@ export default function ProjectEntryForm({ onSave, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-4">
-      <Input label="Description" value={form.work_description}
-        onChange={set("work_description")} placeholder="e.g. Tiles, Plumbing…" autoFocus />
-      <Input label="Date" type="date" value={form.entry_date}
-        onChange={set("entry_date")} required />
-      <Input label="Amount" type="number" value={form.total_amount}
-        onChange={set("total_amount")} placeholder="0" required />
-      <Input label="Paid (leave 0 if yet to pay)" type="number" value={form.paid_amount}
-        onChange={set("paid_amount")} placeholder="0" />
+      <Input label="Description" value={form.description}
+        onChange={set("description")} placeholder="e.g. Tiles, Plumbing…" autoFocus />
+      <Input label="Date" type="date" value={form.date}
+        onChange={set("date")} required />
+      <Input label="Amount" type="number" value={form.amount}
+        onChange={set("amount")} placeholder="0" required />
+      <Input label="Paid (leave blank if fully paid)" type="number" value={form.paid_amount}
+        onChange={set("paid_amount")} placeholder="= amount" />
       <div className="flex gap-2 mt-2">
         <Button type="submit" full disabled={loading}>{loading ? "Saving…" : "Save"}</Button>
         <Button variant="secondary" full onClick={onCancel}>{t("common.cancel")}</Button>

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { nlpApi } from "../api/nlp.api";
+import { projectsApi } from "../api/projects.api";
 import { formatCurrency, formatDate } from "../utils/format";
 import { useTranslation } from "react-i18next";
 
@@ -11,12 +12,17 @@ import { useTranslation } from "react-i18next";
  */
 export default function FloatingAssistant({ onSaved }) {
   const { i18n } = useTranslation();
-  const [open, setOpen]     = useState(false);
-  const [text, setText]     = useState("");
-  const [parsed, setParsed] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]   = useState(null);
-  const [done, setDone]     = useState(false);
+  const [open, setOpen]         = useState(false);
+  const [text, setText]         = useState("");
+  const [parsed, setParsed]     = useState(null);
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState(null);
+  const [done, setDone]         = useState(false);
+
+  // Group picker state (only shown when project_entry items are parsed)
+  const [groups, setGroups]         = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState("");
+
   const textareaRef = useRef(null);
 
   // Focus textarea when panel opens
@@ -28,6 +34,7 @@ export default function FloatingAssistant({ onSaved }) {
 
   const reset = () => {
     setParsed(null); setText(""); setError(null); setDone(false);
+    setGroups([]); setSelectedGroup("");
   };
 
   const close = () => { reset(); setOpen(false); };
@@ -36,7 +43,16 @@ export default function FloatingAssistant({ onSaved }) {
     if (!text.trim()) return;
     setLoading(true); setError(null);
     try {
-      setParsed(await nlpApi.parse(text, i18n.language));
+      const result = await nlpApi.parse(text, i18n.language);
+      setParsed(result);
+      // If any expense items, load groups so user can optionally attach them to one.
+      // Auto-select the first active group — user can click "None" to override.
+      if (result.some((i) => i.type === "expense" || i.type === "project_entry")) {
+        const all = await projectsApi.list();
+        const active = all.filter((p) => p.status !== "completed");
+        setGroups(active);
+        if (active.length > 0) setSelectedGroup(active[0].id);
+      }
     } catch (e) {
       setError(e.message);
     } finally {
@@ -47,9 +63,8 @@ export default function FloatingAssistant({ onSaved }) {
   const handleSave = async () => {
     setLoading(true); setError(null);
     try {
-      const result = await nlpApi.save(parsed);
+      await nlpApi.save(parsed, selectedGroup || null);
       setDone(true);
-      // Navigate to the relevant tab, which remounts the screen and loads fresh data
       const type = parsed[0]?.type;
       onSaved?.(type);
       setTimeout(() => { close(); }, 1200);
@@ -100,11 +115,11 @@ export default function FloatingAssistant({ onSaved }) {
                 <textarea
                   ref={textareaRef}
                   value={text}
-                  onChange={(e) => { setText(e.target.value); if (parsed) setParsed(null); }}
+                  onChange={(e) => { setText(e.target.value); if (parsed) { setParsed(null); setGroups([]); setSelectedGroup(""); } }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleParse(); }
                   }}
-                  placeholder={"e.g. spent ₹450 on groceries today\nor add milk and bread to list…"}
+                  placeholder={"e.g. spent ₹450 on groceries today\nor paste a WhatsApp expense report…"}
                   rows={3}
                   className="w-full text-sm text-slate-800 placeholder-slate-400 bg-slate-50
                              border border-slate-200 rounded-xl px-3 py-2.5 resize-none
@@ -114,11 +129,45 @@ export default function FloatingAssistant({ onSaved }) {
 
                 {error && <p className="text-xs text-red-500 -mt-1">{error}</p>}
 
+                {/* Group picker — optional destination for expense items */}
+                {parsed && groups.length > 0 && (
+                  <div className="flex flex-col gap-1.5">
+                    <p className="text-xs text-slate-400 dark:text-slate-500">
+                      Attach to category <span className="text-slate-300 dark:text-slate-600">(optional)</span>
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      <button
+                        onClick={() => setSelectedGroup("")}
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                          selectedGroup === ""
+                            ? "bg-slate-900 text-white dark:bg-slate-700"
+                            : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                        }`}
+                      >
+                        None
+                      </button>
+                      {groups.map((g) => (
+                        <button
+                          key={g.id}
+                          onClick={() => setSelectedGroup(g.id)}
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                            selectedGroup === g.id
+                              ? "bg-teal-600 text-white"
+                              : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                          }`}
+                        >
+                          {g.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Parsed preview cards */}
                 {parsed && (
                   <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-0.5">
                     {parsed.map((item, i) => (
-                      <div key={i} className="bg-slate-50 rounded-xl p-3 border border-slate-100 dark:bg-slate-700 dark:border-slate-600">
+                      <div key={i} className="rounded-xl p-3 border bg-slate-50 border-slate-100 dark:bg-slate-700 dark:border-slate-600">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
                           {item.type?.replace(/_/g, " ")}
                         </p>
@@ -149,7 +198,7 @@ export default function FloatingAssistant({ onSaved }) {
                       {loading ? "Saving…" : "Save"}
                     </button>
                     <button
-                      onClick={() => { setParsed(null); setError(null); }}
+                      onClick={() => { setParsed(null); setError(null); setGroups([]); setSelectedGroup(""); }}
                       className="flex-1 bg-slate-100 text-slate-600 text-sm font-medium py-2.5 rounded-xl
                                  active:bg-slate-200 dark:bg-slate-700 dark:text-slate-300"
                     >

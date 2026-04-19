@@ -55,7 +55,7 @@ export default function Expenses({ subTabBar }) {
   const startEdit = (e) => {
     setEditingId(e.id);
     setEditError(null);
-    setEditForm({ date: e.date, amount: e.amount, note: e.note || "", category: e.category || "" });
+    setEditForm({ date: e.date, amount: e.amount, description: e.description || "", category: e.category || "" });
   };
 
   const saveEdit = async (id) => {
@@ -117,7 +117,7 @@ export default function Expenses({ subTabBar }) {
       </div>
 
       {/* ── Body ───────────────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto pb-24">
+      <div className="flex-1 overflow-y-auto pb-52">
 
         {loading && <div className="pt-8"><Spinner /></div>}
         {error   && <p className="text-sm text-red-500 text-center pt-6">{error}</p>}
@@ -151,8 +151,8 @@ export default function Expenses({ subTabBar }) {
                           <Input type="date" value={editForm.date}
                             onChange={(ev) => setEditForm((f) => ({ ...f, date: ev.target.value }))} className="flex-1" />
                         </div>
-                        <Input placeholder="Note" value={editForm.note}
-                          onChange={(ev) => setEditForm((f) => ({ ...f, note: ev.target.value }))} />
+                        <Input placeholder="Description" value={editForm.description}
+                          onChange={(ev) => setEditForm((f) => ({ ...f, description: ev.target.value }))} />
                         <Input placeholder="Category" value={editForm.category}
                           onChange={(ev) => setEditForm((f) => ({ ...f, category: ev.target.value }))} />
                         {editError && <p className="text-xs text-red-500">{editError}</p>}
@@ -178,7 +178,7 @@ export default function Expenses({ subTabBar }) {
                       {/* Label */}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">
-                          {e.note || e.category || "Expense"}
+                          {e.description || e.category || "Expense"}
                         </p>
                         {e.category && (
                           <p className="text-xs text-slate-400 dark:text-slate-500 capitalize truncate">{e.category}</p>
