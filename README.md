@@ -1,9 +1,12 @@
 # VeetuLedger
 
-**வீட்டு Ledger** — A household finance PWA for Indian families.
+**வீட்டு Ledger** — A household finance PWA for families.
 
 Track daily expenses, organise them into categories (renovation, construction, events), bulk-import WhatsApp-style expense reports, and share a shopping list — all from your phone, with your household. Everything flows through a single **✦ assistant** bubble.
 
+`Link to the Website`: [https://veetuledger.vercel.app/](https://veetuledger.vercel.app/)
+
+Note: This website is designed for mobile devices and was developed with the help of Claude
 ---
 
 ## Features
